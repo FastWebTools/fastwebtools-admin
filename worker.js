@@ -968,7 +968,7 @@ async function loadOverview() {
     ];
     grid.innerHTML = items.map(function(s) {
       var displayVal = s.value === '–' ? '–' : fmtNum(s.value);
-      var titleAttr = s.notTracked ? ' title="Visitor tracking isn\'t set up on the backend yet"' : '';
+      var titleAttr = s.notTracked ? ' title="Visitor tracking isn\\'t set up on the backend yet"' : '';
       return '<div class="stat-card"' + titleAttr + '><span class="icon"><i class="fa-solid ' + s.icon + '"></i></span><div class="value">' + displayVal + '</div><div class="label">' + s.label + '</div></div>';
     }).join('');
   } catch (e) { toast('Failed to load stats: ' + e.message, 'error'); }
@@ -1113,8 +1113,10 @@ async function loadComments() {
 
     var total = data.total || data.totalCount;
     $('pageInfo').textContent = 'Page ' + commentsPage + (total ? ' of ' + Math.max(1, Math.ceil(total / PAGE_LIMIT)) : '');
+
+    // Fix #11: guard pagination buttons at the edges instead of letting
+    // the user click into empty pages forever.
     $('prevPage').disabled = commentsPage <= 1;
-    // FIX: missing colon in ternary below — added the colon after the true part.
     $('nextPage').disabled = total ? (commentsPage * PAGE_LIMIT >= total) : (rawItems.length < PAGE_LIMIT);
 
     if (!items.length) {
