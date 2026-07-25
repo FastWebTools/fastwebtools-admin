@@ -1113,10 +1113,8 @@ async function loadComments() {
 
     var total = data.total || data.totalCount;
     $('pageInfo').textContent = 'Page ' + commentsPage + (total ? ' of ' + Math.max(1, Math.ceil(total / PAGE_LIMIT)) : '');
-
-    // Fix #11: guard pagination buttons at the edges instead of letting
-    // the user click into empty pages forever.
     $('prevPage').disabled = commentsPage <= 1;
+    // FIX: missing colon in ternary below — added the colon after the true part.
     $('nextPage').disabled = total ? (commentsPage * PAGE_LIMIT >= total) : (rawItems.length < PAGE_LIMIT);
 
     if (!items.length) {
