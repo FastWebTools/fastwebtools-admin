@@ -1,7 +1,4 @@
-/** * FastWebTools Admin Dashboard - Cloudflare Worker
- *
- * v2.5.9: Date range filter, PWA/SW, stat card hover & click
- */
+/** * FastWebTools Admin Dashboard - Cloudflare Worker v2.5.9 */
 
 import DASHBOARD_A from "./dashboard_a.js";
 import DASHBOARD_B from "./dashboard_b.js";
@@ -9,7 +6,7 @@ const BACKEND_BASE = "https://fastwebtools-admin.formyworkupwork.workers.dev";
 const PWA_MANIFEST_JSON = "{\"name\":\"FastWebTools Admin\",\"short_name\":\"FWT Admin\",\"start_url\":\"/\",\"scope\":\"/\",\"display\":\"standalone\",\"background_color\":\"#0f0c29\",\"theme_color\":\"#7c6bff\",\"icons\":[{\"src\":\"/icon-192.png\",\"sizes\":\"192x192\",\"type\":\"image/png\"},{\"src\":\"/icon-512.png\",\"sizes\":\"512x512\",\"type\":\"image/png\"}]}";
 const PWA_ICON_192_B64 = "iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAAB6ElEQVR4nO3SQQkAIADAQPtawe7awT1EOLgAe2ysueHaeF7A1wxEYiASA5EYiMRAJAYiMRCJgUgMRGIgEgORGIjEQCQGIjEQiYFIDERiIBIDkRiIxEAkBiIxEImBSAxEYiASA5EYiMRAJAYiMRCJgUgMRGIgEgORGIjEQCQGIjEQiYFIDERiIBIDkRiIxEAkBiIxEImBSAxEYiASA5EYiMRAJAYiMRCJgUgMRGIgEgORGIjEQCQGIjEQiYFIDERiIBIDkRiIxEAkBiIxEImBSAxEYiASA5EYiMRAJAYiMRCJgUgMRGIgEgORGIjEQCQGIjEQiYFIDERiIBIDkRiIxEAkBiI5sFpwAEh1SW4AAAAASUVORK5CYII=";
 const PWA_ICON_512_B64 = "iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAIAAAB7GkOtAAAHHklEQVR4nO3VMQ0AMAzAsPIdhXHfYPSIJQPIl7nnARA06wUArDAAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiPrgh3HpqSXD1wAAAABJRU5ErkJggg==";
-const SW_JS_CODE = "var C='fwt-v259b';self.addEventListener('install',function(e){e.waitUntil(caches.open(C).then(function(c){return c.addAll(['/']);}));self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){if(k!==C)return caches.delete(k);}));}));self.clients.claim();});self.addEventListener('fetch',function(e){if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request).then(function(r){return r||caches.match('/');});}));});";
+const SW_JS_CODE = "var C='fwt-v259c';self.addEventListener('install',function(e){self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));}));self.clients.claim();});self.addEventListener('fetch',function(e){if(e.request.method!=='GET')return;var url=new URL(e.request.url);if(url.pathname==='/'||url.pathname.endsWith('.html')){return;}e.respondWith(fetch(e.request));});";
 const REQUEST_TIMEOUT_MS = 10000;
 
 const CORS_HEADERS = {
@@ -90,10 +87,10 @@ async function handleLogin(request, env) {
     body: JSON.stringify({ username, password }),
   }, { retries: 1 });
   if (!result.networkOk) {
-    return jsonResponse({ success: false, message: "Could not reach the authentication backend. Please try again shortly." }, 502);
+    return jsonResponse({ success: false, message: "Could not reach the authentication backend." }, 502);
   }
   if (!result.parseOk) {
-    return jsonResponse({ success: false, message: "Authentication backend returned an unexpected response (not JSON)." }, 502);
+    return jsonResponse({ success: false, message: "Backend returned an unexpected response." }, 502);
   }
   return jsonResponse(result.data, result.status);
 }
@@ -125,7 +122,6 @@ async function handleProxy(request, url, env) {
   return jsonResponse({
     success: false,
     message: "Backend error (status " + result.status + ").",
-    status: result.status >= 400 ? result.status : 502,
   }, result.status >= 400 ? result.status : 502);
 }
 
