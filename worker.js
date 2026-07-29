@@ -1,28 +1,14 @@
 /** * FastWebTools Admin Dashboard - Cloudflare Worker
  *
- * v2.5.6: Comments tab redesigned as grouped accordion
- *  - Each blog article gets its own collapsible drop-down instead of one
- *    big mixed table. Header shows article title (clickable link), latest
- *    activity time, and comment count badge.
- *  - Comment cards now use avatar + user + status badge + timestamp
- *    + inline edit/delete buttons for a cleaner, more professional look.
- *  - Groups are sorted by newest activity; the top group opens by default.
- *  - Fetches up to 500 comments in one shot so all groups render together;
- *    pagination controls are hidden in grouped view.
- *
- * v2.5.5: Restored Fast Web Tools logo on login card, sidebar brand, and
- *          top-bar avatar (embedded as base64 in DASHBOARD_HTML).
- *
- * v2.5.4: 4 dashboard bug fixes (comment article links, article likes
- *          links, daily-activity chart, mobile sidebar bg).
+ * v2.5.9: Date range filter, PWA/SW, stat card hover & click
  */
 
-import DASHBOARD_A from "./da.js";
-import DASHBOARD_B from "./db.js";
+import DASHBOARD_A from "./dashboard_a.js";
+import DASHBOARD_B from "./dashboard_b.js";
 const BACKEND_BASE = "https://fastwebtools-admin.formyworkupwork.workers.dev";
 const PWA_MANIFEST_JSON = "{\"name\":\"FastWebTools Admin\",\"short_name\":\"FWT Admin\",\"start_url\":\"/\",\"scope\":\"/\",\"display\":\"standalone\",\"background_color\":\"#0f0c29\",\"theme_color\":\"#7c6bff\",\"icons\":[{\"src\":\"/icon-192.png\",\"sizes\":\"192x192\",\"type\":\"image/png\"},{\"src\":\"/icon-512.png\",\"sizes\":\"512x512\",\"type\":\"image/png\"}]}";
 const PWA_ICON_192_B64 = "iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAAB6ElEQVR4nO3SQQkAIADAQPtawe7awT1EOLgAe2ysueHaeF7A1wxEYiASA5EYiMRAJAYiMRCJgUgMRGIgEgORGIjEQCQGIjEQiYFIDERiIBIDkRiIxEAkBiIxEImBSAxEYiASA5EYiMRAJAYiMRCJgUgMRGIgEgORGIjEQCQGIjEQiYFIDERiIBIDkRiIxEAkBiIxEImBSAxEYiASA5EYiMRAJAYiMRCJgUgMRGIgEgORGIjEQCQGIjEQiYFIDERiIBIDkRiIxEAkBiIxEImBSAxEYiASA5EYiMRAJAYiMRCJgUgMRGIgEgORGIjEQCQGIjEQiYFIDERiIBIDkRiIxEAkBiI5sFpwAEh1SW4AAAAASUVORK5CYII=";
-const PWA_ICON_512_B64 = "iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAIAAAB7GkOtAAAHHklEQVR4nO3VMQ0AMAzAsPIdhXHfYPSIJQPIl7nnARA06wUArDAAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiPrgh3HpqSXD1wAAAABJRU5ErkJggg==";
+const PWA_ICON_512_B64 = "iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAIAAAB7GkOtAAAHHklEQVR4nO3VMQ0AMAzAsPIdhXHfYPSIJQPIl7nnARA06wUArDAAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiDIAgCgDAIgyAIAoAwCIMgCAKAMAiPrgh3HpqSXD1wAAAABJRU5ErkJggg==";
 const SW_JS_CODE = "var C='fwt-v259b';self.addEventListener('install',function(e){e.waitUntil(caches.open(C).then(function(c){return c.addAll(['/']);}));self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){if(k!==C)return caches.delete(k);}));}));self.clients.claim();});self.addEventListener('fetch',function(e){if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request).then(function(r){return r||caches.match('/');});}));});";
 const REQUEST_TIMEOUT_MS = 10000;
 
@@ -107,7 +93,7 @@ async function handleLogin(request, env) {
     return jsonResponse({ success: false, message: "Could not reach the authentication backend. Please try again shortly." }, 502);
   }
   if (!result.parseOk) {
-    return jsonResponse({ success: false, message: "Authentication backend returned an unexpected response (not JSON). This usually means the backend is unreachable or is returning an edge error page." }, 502);
+    return jsonResponse({ success: false, message: "Authentication backend returned an unexpected response (not JSON)." }, 502);
   }
   return jsonResponse(result.data, result.status);
 }
@@ -127,7 +113,7 @@ async function handleProxy(request, url, env) {
   }
   const result = await safeFetchJson(env, targetPathWithQuery, { method: request.method, headers, body }, { retries: 1 });
   if (!result.networkOk) {
-    return jsonResponse({ success: false, message: "Could not reach the backend service. Please try again shortly." }, 502);
+    return jsonResponse({ success: false, message: "Could not reach the backend service." }, 502);
   }
   if (result.parseOk) return jsonResponse(result.data, result.status);
   if (result.ok) {
@@ -138,7 +124,7 @@ async function handleProxy(request, url, env) {
   }
   return jsonResponse({
     success: false,
-    message: "Backend error (status " + result.status + "). The backend did not return a valid JSON response.",
+    message: "Backend error (status " + result.status + ").",
     status: result.status >= 400 ? result.status : 502,
   }, result.status >= 400 ? result.status : 502);
 }
@@ -147,7 +133,7 @@ async function handleRequest(request, env) {
   const url = new URL(request.url);
   if (request.method === "OPTIONS") return new Response(null, { headers: CORS_HEADERS });
   if (url.pathname === "/manifest.webmanifest") return new Response(PWA_MANIFEST_JSON, { headers: { "content-type": "application/manifest+json", "cache-control": "public, max-age=3600" } });
-  if (url.pathname === "/sw.js") return new Response(SW_JS_CODE, { headers: { "content-type": "text/javascript", "cache-control": "public, max-age=3600" } });
+  if (url.pathname === "/sw.js") return new Response(SW_JS_CODE, { headers: { "content-type": "text/javascript", "cache-control": "no-store" } });
   if (url.pathname === "/icon-192.png") { var _b1=Uint8Array.from(atob(PWA_ICON_192_B64),function(c){return c.charCodeAt(0);}); return new Response(_b1, { headers: { "content-type": "image/png", "cache-control": "public, max-age=86400" } }); }
   if (url.pathname === "/icon-512.png") { var _b2=Uint8Array.from(atob(PWA_ICON_512_B64),function(c){return c.charCodeAt(0);}); return new Response(_b2, { headers: { "content-type": "image/png", "cache-control": "public, max-age=86400" } }); }
   if (url.pathname === "/api/login") return handleLogin(request, env);
