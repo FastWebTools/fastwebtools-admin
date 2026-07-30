@@ -1,7 +1,7 @@
 import APP_JS from "./app.js";
 const BE="https://fastwebtools-admin.formyworkupwork.workers.dev";
 const CORS={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET,POST,PUT,DELETE,OPTIONS","Access-Control-Allow-Headers":"Content-Type,Authorization"};
-const SW="var C='fwt-v2512';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{});";
+const SW="var C='fwt-v2513';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{});";
 
 const FAVICON=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%237c6bff'/><text x='16' y='22' text-anchor='middle' font-family='Inter,sans-serif' font-size='18' font-weight='700' fill='white'>F</text></svg>`;
 
@@ -14,18 +14,19 @@ const HTML=`<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0d0b1e;--bg2:linear-gradient(135deg,#0d0b1e 0%,#1a1535 50%,#0d1629 100%);--sf:rgba(255,255,255,.04);--sf2:rgba(255,255,255,.07);--bd:rgba(255,255,255,.09);--tx:#f0eeff;--dm:#8a86ab;--ac:#7c6bff;--ac2:#00d4b1;--dg:#ff6b6b;--wn:#ffb545;--mb:#13102b;color-scheme:dark}
+:root{--bg:#0d0b1e;--bg2:linear-gradient(135deg,#0d0b1e 0%,#1a1535 50%,#0d1629 100%);--sf:rgba(255,255,255,.04);--sf2:rgba(255,255,255,.07);--bd:rgba(255,255,255,.09);--tx:#f0eeff;--dm:#a5a1c7;--ac:#7c6bff;--ac2:#00d4b1;--dg:#ff6b6b;--wn:#ffb545;--mb:#13102b;color-scheme:dark}
 html[data-theme=light]{--bg:#f0f0fa;--bg2:linear-gradient(135deg,#eef0fb,#e8eaf8);--sf:rgba(20,20,60,.04);--sf2:rgba(20,20,60,.07);--bd:rgba(20,20,60,.11);--tx:#1a1833;--dm:#5e5a78;--mb:#ffffff;color-scheme:light}
 body{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;-webkit-font-smoothing:antialiased}
 .hidden{display:none!important}
 .lv{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:var(--bg2)}
 .lc{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:40px 32px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.55)}
-.logo-wrap{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
-.logo-icon{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#7c6bff,#00d4b1);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#0d0b1e;flex-shrink:0}
+.logo-wrap{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:6px}
+.logo-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#7c6bff,#00d4b1);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#0d0b1e;flex-shrink:0}
 .logo-text{font-size:22px;font-weight:700;letter-spacing:-.03em}
 .lc .sub{text-align:center;color:var(--dm);font-size:13px;margin-bottom:28px}
 .field{margin-bottom:15px}
@@ -41,21 +42,21 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;background:va
 .lr label{display:flex;align-items:center;gap:6px;cursor:pointer}
 .btn{width:100%;padding:14px;border:none;border-radius:11px;font-size:14px;font-weight:600;background:linear-gradient(135deg,#7c6bff,#5b4be0);color:#fff;cursor:pointer;transition:all .2s;letter-spacing:.01em}
 .btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 28px rgba(124,107,255,.4)}
-.btn:active:not(:disabled){transform:translateY(0)}
 .btn:disabled{opacity:.55;cursor:wait}
 .lfoot{text-align:center;font-size:11px;color:var(--dm);margin-top:18px;opacity:.7}
 .app{display:flex;min-height:100vh}
-.sb{width:228px;background:var(--sf);border-right:1px solid var(--bd);padding:18px 12px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;flex-shrink:0;z-index:40}
-.sb-brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px;border-bottom:1px solid var(--bd);margin-bottom:12px}
-.sb-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7c6bff,#00d4b1);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#0d0b1e;flex-shrink:0}
-.sb-name{font-size:15px;font-weight:700;letter-spacing:-.02em}
-.ni{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:var(--dm);cursor:pointer;font-size:13.5px;font-weight:500;margin-bottom:2px;transition:all .15s;user-select:none}
+.sb{width:236px;background:var(--sf);border-right:1px solid var(--bd);padding:16px 10px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;flex-shrink:0;z-index:40}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:6px 10px 14px;border-bottom:1px solid var(--bd);margin-bottom:12px}
+.sb-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#7c6bff,#00d4b1);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#0d0b1e;flex-shrink:0}
+.sb-name{font-size:15px;font-weight:700;letter-spacing:-.02em;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ni{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;color:var(--dm);cursor:pointer;font-size:13.5px;font-weight:500;margin-bottom:3px;transition:background .15s,color .15s;user-select:none;line-height:1.2;white-space:nowrap;overflow:hidden}
 .ni:hover{background:var(--sf2);color:var(--tx)}
 .ni.active{background:rgba(124,107,255,.16);color:var(--ac)}
-.ni i{width:16px;text-align:center;font-size:14px}
+.ni .ni-ic{width:20px;text-align:center;font-size:14px;flex-shrink:0;display:inline-flex;justify-content:center}
+.ni .ni-tx{flex:1;overflow:hidden;text-overflow:ellipsis}
 .sbot{margin-top:auto;padding-top:14px;border-top:1px solid var(--bd)}
 .lpill{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dm);margin-bottom:10px;padding:0 4px}
-.ldot{width:8px;height:8px;border-radius:50%;background:#00d4b1;box-shadow:0 0 0 0 rgba(0,212,177,.5);animation:pulse 2s infinite}
+.ldot{width:8px;height:8px;border-radius:50%;background:#00d4b1;box-shadow:0 0 0 0 rgba(0,212,177,.5);animation:pulse 2s infinite;flex-shrink:0}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,212,177,.5)}70%{box-shadow:0 0 0 7px rgba(0,212,177,0)}100%{box-shadow:0 0 0 0 rgba(0,212,177,0)}}
 .bg2{padding:8px 14px;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;color:var(--tx);cursor:pointer;font-size:13px;transition:all .15s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .bg2:hover{background:var(--sf);border-color:rgba(124,107,255,.4)}
@@ -93,14 +94,14 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;background:va
 .fc{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .fc input[type=date]{padding:5px 10px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-size:12px;outline:none;font-family:inherit;transition:border-color .15s}
 .fc input[type=date]:focus{border-color:var(--ac)}
-.fl{font-size:11px;color:var(--ac);font-weight:500;margin-left:4px}
+.fl{font-size:11px;color:var(--ac);font-weight:600;margin-left:4px}
 .card{background:var(--sf);border:1.5px solid var(--bd);border-radius:14px;padding:20px;margin-bottom:16px}
 .card h3{font-size:13.5px;font-weight:600;letter-spacing:-.01em}
-.cb{position:relative;width:100%;height:240px}
+.cb{position:relative;width:100%;height:260px}
 .chr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px}
-.bl{display:flex;flex-direction:column;gap:9px;max-height:540px;overflow-y:auto}
+.bl{display:flex;flex-direction:column;gap:9px;max-height:600px;overflow-y:auto}
 .br{display:flex;align-items:center;gap:10px;font-size:13px}
-.rnk{width:22px;flex-shrink:0;text-align:center;font-size:11px;font-weight:700;color:var(--dm);background:var(--sf2);border-radius:6px;padding:2px 0}
+.rnk{width:26px;flex-shrink:0;text-align:center;font-size:11px;font-weight:700;color:var(--dm);background:var(--sf2);border-radius:6px;padding:3px 0}
 .bn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx);text-decoration:none}
 a.bn:hover{color:var(--ac);text-decoration:underline}
 .bt{flex:1.5;height:18px;background:var(--sf2);border-radius:6px;overflow:hidden;min-width:60px}
@@ -111,6 +112,10 @@ a.bn:hover{color:var(--ac);text-decoration:underline}
 .csi i{font-size:20px;flex-shrink:0}
 .csv{font-size:20px;font-weight:700;line-height:1}
 .csl{color:var(--dm);font-size:11px;margin-top:4px}
+.tabs{display:flex;gap:4px;padding:4px;background:var(--sf);border:1px solid var(--bd);border-radius:11px;margin-bottom:16px;width:fit-content}
+.tab{padding:8px 16px;background:none;border:none;color:var(--dm);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;border-radius:8px;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.tab:hover{color:var(--tx)}
+.tab.active{background:rgba(124,107,255,.18);color:var(--ac)}
 .al{display:flex;flex-direction:column;gap:10px}
 .ai{border:1.5px solid var(--bd);border-radius:13px;overflow:hidden;background:var(--sf)}
 .ai.open{border-color:rgba(124,107,255,.3)}
@@ -159,8 +164,9 @@ a.at:hover{color:var(--ac)}
 @keyframes su{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 .sfield{margin-bottom:16px}
 .sfield label{display:block;font-size:11px;font-weight:600;color:var(--dm);margin-bottom:7px;text-transform:uppercase;letter-spacing:.07em}
+@media(max-width:900px){.two-col{grid-template-columns:1fr!important}}
 @media(max-width:768px){
-.sb{position:fixed;left:-240px;top:0;height:100vh;transition:left .22s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 32px rgba(0,0,0,.6)}
+.sb{position:fixed;left:-260px;top:0;height:100vh;width:240px;transition:left .22s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 32px rgba(0,0,0,.6)}
 .sb.open{left:0}
 .sg{grid-template-columns:1fr 1fr}
 .cnt{padding:14px}
@@ -177,7 +183,7 @@ a.at:hover{color:var(--ac)}
 <div id="LV" class="lv">
   <div class="lc">
     <div class="logo-wrap"><div class="logo-icon">F</div><div class="logo-text">FastWebTools</div></div>
-    <p class="sub">Admin Panel v2.5.12</p>
+    <p class="sub">Admin Panel v2.5.13</p>
     <div id="LE" class="lerr"><i class="fa-solid fa-triangle-exclamation"></i><span id="LES">Invalid credentials</span></div>
     <div class="field"><label>Username</label><div class="iw"><input type="text" id="UN" placeholder="Enter username" autocomplete="username" autocapitalize="none" spellcheck="false"></div></div>
     <div class="field"><label>Password</label><div class="iw"><input type="password" id="PW" placeholder="Enter password" autocomplete="current-password"><button type="button" id="TP" title="Show/hide password"><i class="fa-regular fa-eye" id="EI"></i></button></div></div>
@@ -190,11 +196,11 @@ a.at:hover{color:var(--ac)}
   <aside class="sb" id="SB">
     <div class="sb-brand"><div class="sb-icon">F</div><div class="sb-name">FastWebTools</div></div>
     <nav>
-      <div class="ni active" data-page="overview"><i class="fa-solid fa-gauge-high"></i> Overview</div>
-      <div class="ni" data-page="comments"><i class="fa-solid fa-comments"></i> Comments</div>
-      <div class="ni" data-page="tool-likes"><i class="fa-solid fa-thumbs-up"></i> Tool Likes</div>
-      <div class="ni" data-page="article-likes"><i class="fa-solid fa-heart"></i> Article Likes</div>
-      <div class="ni" data-page="settings"><i class="fa-solid fa-gear"></i> Settings</div>
+      <div class="ni active" data-page="overview"><span class="ni-ic"><i class="fa-solid fa-gauge-high"></i></span><span class="ni-tx">Overview</span></div>
+      <div class="ni" data-page="comments"><span class="ni-ic"><i class="fa-solid fa-comments"></i></span><span class="ni-tx">Comments</span></div>
+      <div class="ni" data-page="tools"><span class="ni-ic"><i class="fa-solid fa-wrench"></i></span><span class="ni-tx">Tools</span></div>
+      <div class="ni" data-page="articles"><span class="ni-ic"><i class="fa-solid fa-newspaper"></i></span><span class="ni-tx">Articles</span></div>
+      <div class="ni" data-page="settings"><span class="ni-ic"><i class="fa-solid fa-gear"></i></span><span class="ni-tx">Settings</span></div>
     </nav>
     <div class="sbot">
       <div class="lpill"><span class="ldot"></span><span id="LC">0</span>&nbsp;live now</div>
@@ -229,20 +235,20 @@ a.at:hover{color:var(--ac)}
             <input type="date" id="FT" title="To date">
             <button class="fb" id="AFC"><i class="fa-solid fa-filter"></i> Apply</button>
           </div>
-          <span class="fl" id="FL"></span>
+          <span class="fl" id="FL">All time</span>
         </div>
         <div class="sg" id="STG"></div>
         <div class="card">
-          <h3 style="margin-bottom:14px"><i class="fa-solid fa-chart-line" style="color:var(--ac);margin-right:6px"></i>Daily Activity</h3>
+          <h3 style="margin-bottom:14px"><i class="fa-solid fa-chart-line" style="color:var(--ac);margin-right:6px"></i>Engagement Overview <span style="color:var(--dm);font-weight:400;font-size:11px;margin-left:8px">Visits &amp; comments over time</span></h3>
           <div class="cb" id="CHTW"><canvas id="CHT"></canvas></div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
           <div class="card">
-            <div class="chr"><h3><i class="fa-solid fa-wrench" style="color:var(--ac);margin-right:6px"></i>Top Tools</h3><button class="bg2" data-nav="tool-likes" style="font-size:12px">View all <i class="fa-solid fa-arrow-right"></i></button></div>
+            <div class="chr"><h3><i class="fa-solid fa-wrench" style="color:var(--ac);margin-right:6px"></i>Top Tools</h3><button class="bg2" data-nav="tools" style="font-size:12px">View all <i class="fa-solid fa-arrow-right"></i></button></div>
             <div id="TUL" class="bl"></div>
           </div>
           <div class="card">
-            <div class="chr"><h3><i class="fa-solid fa-newspaper" style="color:var(--ac);margin-right:6px"></i>Top Articles</h3><button class="bg2" data-nav="article-likes" style="font-size:12px">View all <i class="fa-solid fa-arrow-right"></i></button></div>
+            <div class="chr"><h3><i class="fa-solid fa-newspaper" style="color:var(--ac);margin-right:6px"></i>Top Articles</h3><button class="bg2" data-nav="articles" style="font-size:12px">View all <i class="fa-solid fa-arrow-right"></i></button></div>
             <div id="AVL" class="bl"></div>
           </div>
         </div>
@@ -258,13 +264,17 @@ a.at:hover{color:var(--ac)}
         <div class="card" style="padding:14px" id="CL">Loading...</div>
         <div class="pag"><span id="PI">Page 1</span><div style="display:flex;gap:6px"><button class="bg2" id="PP"><i class="fa-solid fa-chevron-left"></i> Prev</button><button class="bg2" id="NPB">Next <i class="fa-solid fa-chevron-right"></i></button></div></div>
       </div>
-      <div class="pg" id="pg-tool-likes">
-        <div class="ph"><div><h2>Tool Likes</h2><div class="subx">Most liked tools by users</div></div><button class="bg2" id="RTL"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
-        <div class="card"><div id="TLL" class="bl">Loading...</div></div>
+      <div class="pg" id="pg-tools">
+        <div class="ph"><div><h2>Tools</h2><div class="subx">All tools ranked by usage and likes</div></div></div>
+        <div class="tabs"><button class="tab active" data-scope="tools" data-tab="usage"><i class="fa-solid fa-fire"></i> By Usage <span id="TP_USG_C" style="color:var(--dm);font-weight:400;margin-left:4px"></span></button><button class="tab" data-scope="tools" data-tab="likes"><i class="fa-solid fa-thumbs-up"></i> By Likes <span id="TP_LK_C" style="color:var(--dm);font-weight:400;margin-left:4px"></span></button></div>
+        <div id="TP_USG_W" class="card"><div id="TP_USG" class="bl"></div></div>
+        <div id="TP_LK_W" class="card" style="display:none"><div id="TP_LK" class="bl"></div></div>
       </div>
-      <div class="pg" id="pg-article-likes">
-        <div class="ph"><div><h2>Article Likes</h2><div class="subx">Most liked blog articles</div></div><button class="bg2" id="RAL"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
-        <div class="card"><div id="ALL2" class="bl">Loading...</div></div>
+      <div class="pg" id="pg-articles">
+        <div class="ph"><div><h2>Articles</h2><div class="subx">All articles ranked by views and likes</div></div></div>
+        <div class="tabs"><button class="tab active" data-scope="articles" data-tab="views"><i class="fa-solid fa-eye"></i> By Views <span id="AP_VW_C" style="color:var(--dm);font-weight:400;margin-left:4px"></span></button><button class="tab" data-scope="articles" data-tab="likes"><i class="fa-solid fa-heart"></i> By Likes <span id="AP_LK_C" style="color:var(--dm);font-weight:400;margin-left:4px"></span></button></div>
+        <div id="AP_VW_W" class="card"><div id="AP_VW" class="bl"></div></div>
+        <div id="AP_LK_W" class="card" style="display:none"><div id="AP_LK" class="bl"></div></div>
       </div>
       <div class="pg" id="pg-settings">
         <div class="ph"><div><h2>Settings</h2><div class="subx">Account &amp; data management</div></div></div>
