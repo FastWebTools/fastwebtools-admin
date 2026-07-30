@@ -1,10 +1,10 @@
+import APP_JS from "./app.js";
 const BE="https://fastwebtools-admin.formyworkupwork.workers.dev";
 const CORS={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET,POST,PUT,DELETE,OPTIONS","Access-Control-Allow-Headers":"Content-Type,Authorization"};
 const SW="var C='fwt-v2510';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{});";
 
 const HTML=`<!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>FastWebTools Admin</title>
@@ -143,160 +143,54 @@ a.at:hover{color:var(--ac)}
 </style>
 </head>
 <body>
-
-<div id="LV" class="lv">
-<div class="lc">
-<h1>FastWebTools</h1>
-<p class="sub">Admin control center</p>
-<div id="LE" class="lerr"><i class="fa-solid fa-triangle-exclamation"></i><span id="LES">Invalid credentials</span></div>
-<div class="field"><label>Username</label><div class="iw"><input type="text" id="UN" placeholder="Enter username" autocomplete="username" autocapitalize="none" spellcheck="false"></div></div>
-<div class="field"><label>Password</label><div class="iw"><input type="password" id="PW" placeholder="Enter password" autocomplete="current-password"><button type="button" id="TP"><i class="fa-regular fa-eye" id="EI"></i></button></div></div>
-<div class="lr"><label><input type="checkbox" id="REM"> Remember me</label></div>
-<button class="btn" id="LB" type="button">Sign in</button>
-<div class="lfoot">&copy; 2026 FastWebTools v2.5.10</div>
-</div>
-</div>
-
+<div id="LV" class="lv"><div class="lc"><h1>FastWebTools</h1><p class="sub">Admin control center</p><div id="LE" class="lerr"><i class="fa-solid fa-triangle-exclamation"></i><span id="LES">Invalid credentials</span></div><div class="field"><label>Username</label><div class="iw"><input type="text" id="UN" placeholder="Enter username" autocomplete="username" autocapitalize="none" spellcheck="false"></div></div><div class="field"><label>Password</label><div class="iw"><input type="password" id="PW" placeholder="Enter password" autocomplete="current-password"><button type="button" id="TP"><i class="fa-regular fa-eye" id="EI"></i></button></div></div><div class="lr"><label><input type="checkbox" id="REM"> Remember me</label></div><button class="btn" id="LB" type="button">Sign in</button><div class="lfoot">&copy; 2026 FastWebTools v2.5.10</div></div></div>
 <div id="AV" class="app hidden">
-<aside class="sb" id="SB">
-<div class="brand">FastWebTools</div>
-<nav>
-<div class="ni active" data-page="overview"><i class="fa-solid fa-gauge-high"></i> Overview</div>
-<div class="ni" data-page="comments"><i class="fa-solid fa-comments"></i> Comments</div>
-<div class="ni" data-page="tool-likes"><i class="fa-solid fa-thumbs-up"></i> Tool Likes</div>
-<div class="ni" data-page="article-likes"><i class="fa-solid fa-heart"></i> Article Likes</div>
-<div class="ni" data-page="settings"><i class="fa-solid fa-gear"></i> Settings</div>
-</nav>
-<div class="sbot">
-<div class="lpill"><span class="ldot"></span><span id="LC">0</span> live now</div>
-<button class="bg2" style="width:100%;justify-content:center" id="LGOUT"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-</div>
-</aside>
+<aside class="sb" id="SB"><div class="brand">FastWebTools</div><nav><div class="ni active" data-page="overview"><i class="fa-solid fa-gauge-high"></i> Overview</div><div class="ni" data-page="comments"><i class="fa-solid fa-comments"></i> Comments</div><div class="ni" data-page="tool-likes"><i class="fa-solid fa-thumbs-up"></i> Tool Likes</div><div class="ni" data-page="article-likes"><i class="fa-solid fa-heart"></i> Article Likes</div><div class="ni" data-page="settings"><i class="fa-solid fa-gear"></i> Settings</div></nav><div class="sbot"><div class="lpill"><span class="ldot"></span><span id="LC">0</span> live now</div><button class="bg2" style="width:100%;justify-content:center" id="LGOUT"><i class="fa-solid fa-right-from-bracket"></i> Logout</button></div></aside>
 <div class="mw">
-<header class="tb">
-<button class="ib" id="MT"><i class="fa-solid fa-bars"></i></button>
-<span class="title" id="PT">Overview</span>
-<div class="sw"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Search..."></div>
-<div class="tba">
-<button class="ib" id="RB" title="Refresh"><i class="fa-solid fa-rotate"></i></button>
-<button class="ib" id="TG" title="Toggle theme"><i class="fa-solid fa-moon"></i></button>
-</div>
-</header>
+<header class="tb"><button class="ib" id="MT"><i class="fa-solid fa-bars"></i></button><span class="title" id="PT">Overview</span><div class="sw"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Search..."></div><div class="tba"><button class="ib" id="RB" title="Refresh"><i class="fa-solid fa-rotate"></i></button><button class="ib" id="TG" title="Toggle theme"><i class="fa-solid fa-moon"></i></button></div></header>
 <div class="cnt">
-
-<div class="pg active" id="pg-overview">
-<div class="ph"><div><h2>Overview</h2><div class="subx">Real-time snapshot</div></div><label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--dm)"><input type="checkbox" id="AR" checked> Auto-refresh</label></div>
-<div class="fbr">
-<div class="fbs" id="FBS">
-<button class="fb active" data-p="all">All-time</button>
-<button class="fb" data-p="today">Today</button>
-<button class="fb" data-p="yesterday">Yesterday</button>
-<button class="fb" data-p="7d">Last 7 days</button>
-<button class="fb" data-p="30d">Last 30 days</button>
-<button class="fb" data-p="month">This month</button>
-</div>
-<div class="fc"><input type="date" id="FF"><span style="color:var(--dm)">to</span><input type="date" id="FT"><button class="fb" id="AFC">Apply</button></div>
-<span class="fl" id="FL"></span>
-</div>
-<div class="sg" id="STG"></div>
-<div class="card"><h3 style="margin-bottom:12px">Daily activity</h3><div class="cb" id="CHTW"><canvas id="CHT"></canvas></div></div>
-<div class="card"><div class="chr"><h3>Top Tools</h3><button class="bg2" data-nav="tool-likes"><i class="fa-solid fa-arrow-right"></i> View all</button></div><div id="TUL" class="bl"></div></div>
-<div class="card"><div class="chr"><h3>Top Articles</h3><button class="bg2" data-nav="article-likes"><i class="fa-solid fa-arrow-right"></i> View all</button></div><div id="AVL" class="bl"></div></div>
-</div>
-
-<div class="pg" id="pg-comments">
-<div class="ph"><div><h2>Comments</h2><div class="subx">Moderate user comments</div></div></div>
-<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
-<div class="sw" style="max-width:280px"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="CS" placeholder="Search comments..."></div>
-<select id="SF" class="bg2" style="padding:8px 14px"><option value="all">All statuses</option><option value="published">Published</option><option value="pending">Pending</option><option value="spam">Spam</option></select>
-<button class="bg2" id="RC"><i class="fa-solid fa-rotate"></i> Refresh</button>
-</div>
-<div class="card" style="padding:14px" id="CL">Loading...</div>
-<div class="pag"><span id="PI">Page 1</span><div style="display:flex;gap:6px"><button class="bg2" id="PP"><i class="fa-solid fa-chevron-left"></i> Prev</button><button class="bg2" id="NPB">Next <i class="fa-solid fa-chevron-right"></i></button></div></div>
-</div>
-
-<div class="pg" id="pg-tool-likes">
-<div class="ph"><div><h2>Tool Likes</h2><div class="subx">Most liked tools</div></div><button class="bg2" id="RTL"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
-<div class="card"><div id="TLL" class="bl">Loading...</div></div>
-</div>
-
-<div class="pg" id="pg-article-likes">
-<div class="ph"><div><h2>Article Likes</h2><div class="subx">Most liked articles</div></div><button class="bg2" id="RAL"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
-<div class="card"><div id="ALL2" class="bl">Loading...</div></div>
-</div>
-
-<div class="pg" id="pg-settings">
-<div class="ph"><div><h2>Settings</h2></div></div>
-<div class="card" style="max-width:500px">
-<h3 style="margin-bottom:12px">Change Password</h3>
-<div class="field"><label>Current Password</label><div class="iw"><input type="password" id="CP"></div></div>
-<div class="field"><label>New Password</label><div class="iw"><input type="password" id="NP2"></div></div>
-<div class="field"><label>Confirm New Password</label><div class="iw"><input type="password" id="CPX"></div></div>
-<button class="btn" style="width:auto;padding:11px 28px" id="CPB">Update Password</button>
-</div>
-<div class="card" style="max-width:500px;border-color:rgba(255,107,107,.3)">
-<h3 style="color:var(--dg);margin-bottom:8px"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</h3>
-<p style="color:var(--dm);font-size:13px;margin-bottom:12px">Clear all analytics data. This cannot be undone.</p>
-<button class="bd2" id="CAB">Clear All Data</button>
-</div>
-</div>
-
-</div>
-</div>
-</div>
-
+<div class="pg active" id="pg-overview"><div class="ph"><div><h2>Overview</h2><div class="subx">Real-time snapshot</div></div><label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--dm)"><input type="checkbox" id="AR" checked> Auto-refresh</label></div><div class="fbr"><div class="fbs" id="FBS"><button class="fb active" data-p="all">All-time</button><button class="fb" data-p="today">Today</button><button class="fb" data-p="yesterday">Yesterday</button><button class="fb" data-p="7d">Last 7 days</button><button class="fb" data-p="30d">Last 30 days</button><button class="fb" data-p="month">This month</button></div><div class="fc"><input type="date" id="FF"><span style="color:var(--dm)">to</span><input type="date" id="FT"><button class="fb" id="AFC">Apply</button></div><span class="fl" id="FL"></span></div><div class="sg" id="STG"></div><div class="card"><h3 style="margin-bottom:12px">Daily activity</h3><div class="cb" id="CHTW"><canvas id="CHT"></canvas></div></div><div class="card"><div class="chr"><h3>Top Tools</h3><button class="bg2" data-nav="tool-likes">View all <i class="fa-solid fa-arrow-right"></i></button></div><div id="TUL" class="bl"></div></div><div class="card"><div class="chr"><h3>Top Articles</h3><button class="bg2" data-nav="article-likes">View all <i class="fa-solid fa-arrow-right"></i></button></div><div id="AVL" class="bl"></div></div></div>
+<div class="pg" id="pg-comments"><div class="ph"><div><h2>Comments</h2><div class="subx">Moderate user comments</div></div></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center"><div class="sw" style="max-width:280px"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="CS" placeholder="Search comments..."></div><select id="SF" class="bg2" style="padding:8px 14px"><option value="all">All statuses</option><option value="published">Published</option><option value="pending">Pending</option><option value="spam">Spam</option></select><button class="bg2" id="RC"><i class="fa-solid fa-rotate"></i> Refresh</button></div><div class="card" style="padding:14px" id="CL">Loading...</div><div class="pag"><span id="PI">Page 1</span><div style="display:flex;gap:6px"><button class="bg2" id="PP"><i class="fa-solid fa-chevron-left"></i> Prev</button><button class="bg2" id="NPB">Next <i class="fa-solid fa-chevron-right"></i></button></div></div></div>
+<div class="pg" id="pg-tool-likes"><div class="ph"><div><h2>Tool Likes</h2><div class="subx">Most liked tools</div></div><button class="bg2" id="RTL"><i class="fa-solid fa-rotate"></i> Refresh</button></div><div class="card"><div id="TLL" class="bl">Loading...</div></div></div>
+<div class="pg" id="pg-article-likes"><div class="ph"><div><h2>Article Likes</h2><div class="subx">Most liked articles</div></div><button class="bg2" id="RAL"><i class="fa-solid fa-rotate"></i> Refresh</button></div><div class="card"><div id="ALL2" class="bl">Loading...</div></div></div>
+<div class="pg" id="pg-settings"><div class="ph"><div><h2>Settings</h2></div></div><div class="card" style="max-width:500px"><h3 style="margin-bottom:12px">Change Password</h3><div class="field"><label>Current Password</label><div class="iw"><input type="password" id="CP"></div></div><div class="field"><label>New Password</label><div class="iw"><input type="password" id="NP2"></div></div><div class="field"><label>Confirm New Password</label><div class="iw"><input type="password" id="CPX"></div></div><button class="btn" style="width:auto;padding:11px 28px" id="CPB">Update Password</button></div><div class="card" style="max-width:500px;border-color:rgba(255,107,107,.3)"><h3 style="color:var(--dg);margin-bottom:8px"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</h3><p style="color:var(--dm);font-size:13px;margin-bottom:12px">Clear all analytics data. This cannot be undone.</p><button class="bd2" id="CAB">Clear All Data</button></div></div>
+</div></div></div>
 <div class="mo" id="MO"><div class="mbox"><div class="mh"><h3 id="MTT">Confirm</h3><button class="ib" id="MC"><i class="fa-solid fa-xmark"></i></button></div><div class="mbody" id="MB"></div><div class="mf" id="MF"></div></div></div>
 <div class="ts" id="TS"></div>
+<script src="/app.js" defer></script>
+</body></html>`;
 
-<script>
-(function(){
-'use strict';
-var API='/api', TK='fwt_token', TH='fwt_theme', PL=20;
-var token=null, curP='overview', cPg=1, cAll=[], liveT=null, arT=null, rng=null;
-var chartInst=null;
+function jR(o,s){return new Response(JSON.stringify(o),{status:s||200,headers:Object.assign({"Content-Type":"application/json;charset=UTF-8"},CORS)});}
 
-function G(id){return document.getElementById(id);}
-function esc(s){var d=document.createElement('div');d.textContent=String(s==null?'':s);return d.innerHTML;}
-function fmt(n){n=Number(n)||0;return n>=1000?(n/1000).toFixed(1)+'k':String(n);}
-function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function fdt(v){if(v==null||v==='')return '-';var d=new Date(v);if(isNaN(d.getTime()))return '-';var mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];var h=d.getHours(),ap=h>=12?'PM':'AM',h12=h%12||12;return mo[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear()+' '+h12+':'+String(d.getMinutes()).padStart(2,'0')+' '+ap;}
-function artTitle(u){if(!u)return '(unknown)';var s=String(u);var q=s.indexOf('?');if(q>=0)s=s.substring(0,q);var h=s.indexOf('#');if(h>=0)s=s.substring(0,h);var parts=s.split('/');var last=parts[parts.length-1]||parts[parts.length-2]||s;var lo=last.toLowerCase();if(lo.substring(lo.length-5)==='.html')last=last.substring(0,last.length-5);else if(lo.substring(lo.length-4)==='.htm')last=last.substring(0,last.length-4);try{last=decodeURIComponent(last);}catch(e){}last=last.split('-').join(' ').split('_').join(' ');var out='',up=true;for(var i=0;i<last.length;i++){var c=last.charAt(i);if(c===' '){up=true;out+=c;}else if(up){out+=c.toUpperCase();up=false;}else{out+=c;}}return out.trim()||String(u);}
-function artUrl(u){if(!u)return '#';var s=String(u);if(s.substring(0,7)==='http://'||s.substring(0,8)==='https://')return s;while(s.charAt(0)==='/')s=s.substring(1);return 'https://www.fastwebtools.online/'+s;}
-
-function toast(msg,type){type=type||'info';var ic={success:'fa-circle-check',error:'fa-circle-exclamation',info:'fa-circle-info'};var el=document.createElement('div');el.className='toast '+type;el.innerHTML='<i class="fa-solid '+ic[type]+'"></i><span></span>';el.querySelector('span').textContent=msg;G('TS').appendChild(el);setTimeout(function(){el.style.opacity='0';setTimeout(function(){el.remove();},300);},4200);}
-
-function showMod(title,body,btns){G('MTT').textContent=title;G('MB').innerHTML=body;var mf=G('MF');mf.innerHTML='';(btns||[]).forEach(function(b){var btn=document.createElement('button');btn.className=b.cls||'bg2';btn.textContent=b.label;btn.onclick=b.fn;mf.appendChild(btn);});G('MO').classList.add('show');}
-function closeMod(){G('MO').classList.remove('show');}
-
-function showLogin(){G('AV').classList.add('hidden');G('LV').classList.remove('hidden');if(liveT){clearInterval(liveT);liveT=null;}if(arT){clearInterval(arT);arT=null;}}
-function showApp(){G('LV').classList.add('hidden');G('AV').classList.remove('hidden');loadPage('overview');startLive();startAR();}
-function logout(){token=null;try{localStorage.removeItem(TK);}catch(e){}showLogin();}
-
-function apiCall(path,opts){opts=opts||{};var h={'Content-Type':'application/json'};if(token)h['Authorization']='Bearer '+token;return fetch(API+path,{method:opts.method||'GET',headers:h,body:opts.body}).then(function(r){if(r.status===401){logout();throw new Error('Session expired');}return r.text().then(function(raw){var d;try{d=raw?JSON.parse(raw):{};}catch(e){throw new Error('Bad response');}if(!r.ok||d.success===false)throw new Error(d.message||d.error||('Error '+r.status));return d;});});}
-
-function wr(path){if(!rng)return path;var s=path.indexOf('?')===-1?'?':'&';return path+s+'from='+rng.from+'&to='+rng.to;}
-function setRng(from,to){rng=from?{from:from,to:to||from}:null;G('FL').textContent=rng?('Showing: '+rng.from+(rng.from!==rng.to?' to '+rng.to:'')):'';if(curP==='overview')loadOverview();}
-function presetRng(p){var now=new Date(),to=ymd(now),from;if(p==='all'){setRng(null);return;}if(p==='today'){from=ymd(now);}else if(p==='yesterday'){var y=new Date(now.getTime()-86400000);from=to=ymd(y);}else if(p==='7d'){from=ymd(new Date(now.getTime()-6*86400000));}else if(p==='30d'){from=ymd(new Date(now.getTime()-29*86400000));}else if(p==='month'){from=ymd(new Date(now.getFullYear(),now.getMonth(),1));}setRng(from,to);}
-
-function doLogin(){var u=G('UN').value.trim();var p=G('PW').value;var btn=G('LB');var le=G('LE'),les=G('LES');le.classList.remove('show');if(!u||!p){les.textContent='Enter username and password';le.classList.add('show');return;}btn.disabled=true;btn.textContent='Signing in...';fetch(API+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})}).then(function(r){return r.text().then(function(raw){var d;try{d=raw?JSON.parse(raw):{};}catch(e){throw new Error('Bad response from server');}if(!r.ok||!d.success||!d.token){throw new Error(d.message||d.error||('Login failed ('+r.status+')'));}token=d.token;try{if(G('REM').checked)localStorage.setItem(TK,token);}catch(e){}toast('Welcome back!','success');showApp();});}).catch(function(e){les.textContent=e.message||'Network error';le.classList.add('show');}).then(function(){btn.disabled=false;btn.textContent='Sign in';});}
-
-function loadPage(name){curP=name;var pgs=document.querySelectorAll('.pg');for(var i=0;i<pgs.length;i++)pgs[i].classList.remove('active');var pg=G('pg-'+name);if(pg)pg.classList.add('active');var nis=document.querySelectorAll('.ni');for(var j=0;j<nis.length;j++)nis[j].classList.toggle('active',nis[j].getAttribute('data-page')===name);G('PT').textContent=name.charAt(0).toUpperCase()+name.slice(1).split('-').join(' ');G('SB').classList.remove('open');if(name==='overview')loadOverview();else if(name==='comments')loadComments(1);else if(name==='tool-likes')loadToolLikes();else if(name==='article-likes')loadArticleLikes();}
-function refreshCur(){if(curP==='overview')loadOverview();else if(curP==='comments')loadComments(cPg);else if(curP==='tool-likes')loadToolLikes();else if(curP==='article-likes')loadArticleLikes();}
-
-function startLive(){if(liveT)clearInterval(liveT);pollLive();liveT=setInterval(pollLive,5000);}
-function pollLive(){apiCall('/visitors/realtime').then(function(d){var el=G('LC');if(el)el.textContent=fmt(d.live||0);}).catch(function(){});}
-function startAR(){if(arT)clearInterval(arT);arT=setInterval(function(){if(G('AR').checked)refreshCur();},20000);}
-
-function loadOverview(){
-apiCall(wr('/stats')).then(function(s){var st=s.stats||{};var cards=[['total_visits','Total Visits','fa-eye',''],['unique_visitors','Unique Visitors','fa-users',''],['total_tool_uses','Tool Uses','fa-wrench',''],['total_comments','Comments','fa-comments','comments'],['total_tool_likes','Tool Likes','fa-thumbs-up','tool-likes'],['total_article_likes','Article Likes','fa-heart','article-likes']];var h='';for(var i=0;i<cards.length;i++){var c=cards[i];var v=Number(st[c[0]]||0);h+='<div class="sc" data-pg="'+c[3]+'"><div class="val">'+fmt(v)+'</div><div class="lbl2">'+c[1]+'</div><i class="fa-solid '+c[2]+' ic"></i></div>';}G('STG').innerHTML=h;var scs=document.querySelectorAll('.sc[data-pg]');for(var k=0;k<scs.length;k++){(function(el){var pg=el.getAttribute('data-pg');if(pg)el.addEventListener('click',function(){loadPage(pg);});})(scs[k]);}}).catch(function(e){G('STG').innerHTML='<div style="color:var(--dg);grid-column:1/-1;padding:14px">Stats: '+esc(e.message)+'</div>';});
-
-apiCall(wr('/daily-activity?days=30')).then(function(dd){var days=dd.activity||dd.days||[];var wrap=G('CHTW');if(!wrap)return;wrap.innerHTML='<canvas id="CHT"></canvas>';var ctx=G('CHT');if(chartInst){try{chartInst.destroy();}catch(e){}chartInst=null;}if(!ctx||typeof Chart==='undefined')return;if(!days.length){wrap.innerHTML='<div style="text-align:center;color:var(--dm);padding:80px 20px">No activity data in selected range</div>';return;}var labels=[],data=[];for(var i=0;i<days.length;i++){labels.push(days[i].day||days[i].date||'');data.push(Number(days[i].visits||days[i].count||0));}chartInst=new Chart(ctx.getContext('2d'),{type:'line',data:{labels:labels,datasets:[{label:'Visits',data:data,borderColor:'#7c6bff',backgroundColor:'rgba(124,107,255,0.12)',fill:true,tension:0.4,pointBackgroundColor:'#7c6bff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8a86ab'},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#8a86ab'},grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true}}}});}).catch(function(e){var w=G('CHTW');if(w)w.innerHTML='<div style="color:var(--dg);padding:20px">Chart: '+esc(e.message)+'</div>';});
-
-apiCall(wr('/popular-tools?limit=10')).then(function(d){var tls=d.tools||[];var mx=tls[0]?Number(tls[0].count||0)||1:1;var h='';for(var i=0;i<tls.length;i++){var t=tls[i];var n=t.name||t.tool_id||'Unknown';var c=Number(t.count||0);var p=Math.round(c/mx*100);h+='<div class="br"><span class="bn" title="'+esc(n)+'">'+esc(n)+'</span><span class="bt"><span class="bf" style="width:'+p+'%"></span></span><span class="bv">'+fmt(c)+'</span></div>';}G('TUL').innerHTML=h||'<div style="color:var(--dm);padding:20px;text-align:center">No tool usage yet</div>';}).catch(function(e){G('TUL').innerHTML='<div style="color:var(--dg);padding:14px">'+esc(e.message)+'</div>';});
-
-apiCall(wr('/popular-articles?limit=10')).then(function(d){var arts=d.articles||[];var mx=arts[0]?Number(arts[0].count||0)||1:1;var h='';for(var i=0;i<arts.length;i++){var a=arts[i];var raw=a.url||a.name||a.article_id||'';var t=artTitle(raw);var u=artUrl(raw);var c=Number(a.count||0);var p=Math.round(c/mx*100);h+='<div class="br"><a class="bn" href="'+esc(u)+'" target="_blank" rel="noopener" title="'+esc(t)+'">'+esc(t)+'</a><span class="bt"><span class="bf" style="width:'+p+'%"></span></span><span class="bv">'+fmt(c)+'</span></div>';}G('AVL').innerHTML=h||'<div style="color:var(--dm);padding:20px;text-align:center">No article views yet</div>';}).catch(function(e){G('AVL').innerHTML='<div style="color:var(--dg);padding:14px">'+esc(e.message)+'</div>';});
+async function proxy(req,path,env){
+  const h={};
+  const a=req.headers.get("Authorization");if(a)h["Authorization"]=a;
+  const ct=req.headers.get("Content-Type");if(ct)h["Content-Type"]=ct;
+  let body;
+  if(!["GET","HEAD"].includes(req.method)){try{body=await req.arrayBuffer();}catch(e){return jR({success:false,message:"Bad body"},400);}}
+  try{
+    let r;
+    if(env&&env.BACKEND&&typeof env.BACKEND.fetch==="function"){r=await env.BACKEND.fetch("https://internal"+path,{method:req.method,headers:h,body});}
+    else{r=await fetch(BE+path,{method:req.method,headers:h,body});}
+    const raw=await r.text();
+    let p=null;try{p=raw?JSON.parse(raw):null;}catch(e){}
+    if(p!==null)return jR(p,r.status);
+    return new Response(raw,{status:r.status,headers:Object.assign({"Content-Type":r.headers.get("Content-Type")||"text/plain"},CORS)});
+  }catch(e){return jR({success:false,message:"Backend error: "+(e&&e.message||String(e))},502);}
 }
 
-function loadComments(page){cPg=page||1;G('CL').innerHTML='<div style="padding:20px;text-align:center;color:var(--dm)">Loading...</div>';apiCall('/comments').then(function(d){cAll=d.comments||[];renderComments();}).catch(function(e){G('CL').innerHTML='<div style="color:var(--dg);padding:14px">'+esc(e.message)+'</div>';});}
-
-function renderComments(){var sq=G('CS').value.trim().toLowerCase();var st=G('SF').value;var list=[];for(var i=0;i<cAll.length;i++){var c=cAll[i];var cs=c.status||'published';if(st&&st!=='all'&&cs!==st)continue;if(sq){var hay=((c.name||'')+' '+(c.comment||'')+' '+(c.article_id||'')).toLowerCase();if(hay.indexOf(sq)===-1)continue;}list.push(c);}var total=list.length;var pages=Math.max(1,Math.ceil(total/PL));if(cPg>pages)cPg=pages;if(cPg<1)cPg=1;var pageList=list.slice((cPg-1)*PL,cPg*PL);if(!pageList.length){G('CL').innerHTML='<div style="padding:30px;text-align:center;color:var(--dm)">No comments found.</div>';G('PI').textContent='Page '+cPg+' of '+pages+' \u2014 0 results';G('PP').disabled=true;G('NPB').disabled=true;return;}var grp={};var order=[];for(var j=0;j<pageList.length;j++){var c2=pageList[j];var k=c2.article_id||'(no-article)';if(!grp[k]){grp[k]={list:[],latest:0};order.push(k);}grp[k].list.push(c2);var dt=Number(c2.created_at||0);if(dt>grp[k].latest)grp[k].latest=dt;}order.sort(function(a,b){return grp[b].latest-grp[a].latest;});var h='<div class="al">';for(var m=0;m<order.length;m++){var slug=order[m],g=grp[slug];var t=artTitle(slug),u=artUrl(slug);h+='<div class="ai'+(m===0?' open':'')+'"><div class="ah" data-toggle="1"><i class="fa-solid fa-chevron-right achev"></i><div class="atw"><a class="at" href="'+esc(u)+'" target="_blank" rel="noopener" data-noflip="1">'+esc(t)+'</a><div class="asub">'+fdt(g.latest)+' \u00b7 '+g.list.length+' comment'+(g.list.length===1?'':'s')+'</div></div><span class="acnt">'+g.list.length+'</span></div><div class="abdy">';for(var l=0;l<g.list.length;l++){var c3=g.list[l];var init=String(c3.name||'?').charAt(0).toUpperCase();var stx=c3.status||'published';h+='<div class="cr"><div class="cav">'+esc(init)+'</div><div class="cm"><div class="chr2">
+export default {
+  async fetch(req,env,ctx){
+    try{
+      const url=new URL(req.url);
+      if(req.method==="OPTIONS")return new Response(null,{headers:CORS});
+      if(url.pathname==="/sw.js")return new Response(SW,{headers:{"content-type":"text/javascript","cache-control":"no-store"}});
+      if(url.pathname==="/app.js")return new Response(APP_JS,{headers:{"content-type":"text/javascript;charset=UTF-8","cache-control":"no-store,no-cache,must-revalidate"}});
+      if(url.pathname==="/api/login")return proxy(req,"/admin/login"+url.search,env);
+      if(url.pathname.startsWith("/api/"))return proxy(req,url.pathname.replace(/^\/api/,"/admin")+url.search,env);
+      return new Response(HTML,{headers:{"Content-Type":"text/html;charset=UTF-8","Cache-Control":"no-store,no-cache,must-revalidate"}});
+    }catch(err){
+      return new Response("Server error: "+(err&&err.message||String(err)),{status:500});
+    }
+  }
+};
