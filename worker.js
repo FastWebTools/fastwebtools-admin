@@ -1,7 +1,7 @@
 import APP_JS from "./app.js";
 const BE="https://fastwebtools-admin.formyworkupwork.workers.dev";
 const CORS={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET,POST,PUT,DELETE,OPTIONS","Access-Control-Allow-Headers":"Content-Type,Authorization"};
-const SW="var C='fwt-v2511';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{});";
+const SW="var C='fwt-v2512';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{});";
 
 const FAVICON=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%237c6bff'/><text x='16' y='22' text-anchor='middle' font-family='Inter,sans-serif' font-size='18' font-weight='700' fill='white'>F</text></svg>`;
 
@@ -22,7 +22,6 @@ const HTML=`<!DOCTYPE html>
 html[data-theme=light]{--bg:#f0f0fa;--bg2:linear-gradient(135deg,#eef0fb,#e8eaf8);--sf:rgba(20,20,60,.04);--sf2:rgba(20,20,60,.07);--bd:rgba(20,20,60,.11);--tx:#1a1833;--dm:#5e5a78;--mb:#ffffff;color-scheme:light}
 body{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;-webkit-font-smoothing:antialiased}
 .hidden{display:none!important}
-/* ---- LOGIN ---- */
 .lv{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:var(--bg2)}
 .lc{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:40px 32px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.55)}
 .logo-wrap{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
@@ -45,7 +44,6 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;background:va
 .btn:active:not(:disabled){transform:translateY(0)}
 .btn:disabled{opacity:.55;cursor:wait}
 .lfoot{text-align:center;font-size:11px;color:var(--dm);margin-top:18px;opacity:.7}
-/* ---- APP SHELL ---- */
 .app{display:flex;min-height:100vh}
 .sb{width:228px;background:var(--sf);border-right:1px solid var(--bd);padding:18px 12px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;flex-shrink:0;z-index:40}
 .sb-brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px;border-bottom:1px solid var(--bd);margin-bottom:12px}
@@ -64,7 +62,6 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;background:va
 .bg2:disabled{opacity:.4;cursor:not-allowed}
 .bd2{padding:8px 16px;background:rgba(255,107,107,.10);border:1px solid rgba(255,107,107,.28);border-radius:10px;color:var(--dg);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all .15s}
 .bd2:hover{background:rgba(255,107,107,.18)}
-/* ---- MAIN AREA ---- */
 .mw{flex:1;min-width:0;display:flex;flex-direction:column}
 .tb{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--bd);background:rgba(255,255,255,.02);position:sticky;top:0;z-index:20;backdrop-filter:blur(12px)}
 .tb .title{font-weight:600;font-size:16px;letter-spacing:-.01em}
@@ -75,14 +72,12 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;background:va
 .ib{background:none;border:none;color:var(--dm);font-size:14px;cursor:pointer;padding:8px;border-radius:8px;transition:all .15s;width:34px;height:34px;display:flex;align-items:center;justify-content:center}
 .ib:hover{background:var(--sf2);color:var(--tx)}
 .cnt{padding:22px;max-width:1400px;width:100%;margin:0 auto}
-/* ---- PAGES ---- */
 .pg{display:none}
 .pg.active{display:block;animation:fi .18s ease}
 @keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 .ph{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:18px}
 .ph h2{font-size:20px;font-weight:700;letter-spacing:-.02em}
 .ph .subx{color:var(--dm);font-size:12px;margin-top:3px}
-/* ---- STAT CARDS ---- */
 .sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin-bottom:18px}
 .sc{background:var(--sf);border:1.5px solid var(--bd);border-radius:14px;padding:18px;transition:all .2s;position:relative;overflow:hidden}
 .sc:hover{transform:translateY(-2px);border-color:rgba(124,107,255,.5);box-shadow:0 8px 24px rgba(0,0,0,.2)}
@@ -90,7 +85,6 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;background:va
 .sc .val{font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1}
 .sc .lbl2{color:var(--dm);font-size:12px;margin-top:6px;font-weight:500}
 .sc .ic{position:absolute;top:14px;right:14px;font-size:22px;opacity:.18}
-/* ---- FILTER BAR ---- */
 .fbr{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:var(--sf);border:1px solid var(--bd);border-radius:13px}
 .fbs{display:flex;gap:6px;flex-wrap:wrap;flex:1}
 .fb{padding:5px 13px;background:var(--sf2);border:1px solid var(--bd);border-radius:20px;color:var(--dm);cursor:pointer;font-size:12px;font-weight:500;font-family:inherit;transition:all .15s}
@@ -100,12 +94,10 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;background:va
 .fc input[type=date]{padding:5px 10px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-size:12px;outline:none;font-family:inherit;transition:border-color .15s}
 .fc input[type=date]:focus{border-color:var(--ac)}
 .fl{font-size:11px;color:var(--ac);font-weight:500;margin-left:4px}
-/* ---- CARDS ---- */
 .card{background:var(--sf);border:1.5px solid var(--bd);border-radius:14px;padding:20px;margin-bottom:16px}
 .card h3{font-size:13.5px;font-weight:600;letter-spacing:-.01em}
 .cb{position:relative;width:100%;height:240px}
 .chr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px}
-/* ---- BARS ---- */
 .bl{display:flex;flex-direction:column;gap:9px;max-height:540px;overflow-y:auto}
 .br{display:flex;align-items:center;gap:10px;font-size:13px}
 .rnk{width:22px;flex-shrink:0;text-align:center;font-size:11px;font-weight:700;color:var(--dm);background:var(--sf2);border-radius:6px;padding:2px 0}
@@ -114,7 +106,11 @@ a.bn:hover{color:var(--ac);text-decoration:underline}
 .bt{flex:1.5;height:18px;background:var(--sf2);border-radius:6px;overflow:hidden;min-width:60px}
 .bf{display:block;height:100%;background:linear-gradient(90deg,#7c6bff,#00d4b1);border-radius:6px;transition:width .4s ease}
 .bv{width:44px;flex-shrink:0;text-align:right;font-weight:700;font-size:12px}
-/* ---- COMMENTS ---- */
+.cst{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.csi{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--sf);border:1.5px solid var(--bd);border-radius:12px}
+.csi i{font-size:20px;flex-shrink:0}
+.csv{font-size:20px;font-weight:700;line-height:1}
+.csl{color:var(--dm);font-size:11px;margin-top:4px}
 .al{display:flex;flex-direction:column;gap:10px}
 .ai{border:1.5px solid var(--bd);border-radius:13px;overflow:hidden;background:var(--sf)}
 .ai.open{border-color:rgba(124,107,255,.3)}
@@ -146,7 +142,6 @@ a.at:hover{color:var(--ac)}
 .sbd.pending{background:rgba(255,181,69,.14);color:#ffb545}
 .sbd.spam{background:rgba(255,107,107,.14);color:#ff6b6b}
 .pag{display:flex;justify-content:space-between;align-items:center;margin-top:16px;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--dm)}
-/* ---- MODAL ---- */
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
 .mo.show{display:flex}
 .mbox{background:var(--mb);border:1px solid var(--bd);border-radius:18px;max-width:480px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.6)}
@@ -154,7 +149,6 @@ a.at:hover{color:var(--ac)}
 .mh h3{font-size:15px;font-weight:600}
 .mbody{padding:20px}
 .mf{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--bd)}
-/* ---- TOAST ---- */
 .ts{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:200;max-width:340px}
 .toast{padding:13px 16px;border-radius:12px;background:var(--mb);border:1px solid var(--bd);font-size:13px;color:var(--tx);display:flex;align-items:flex-start;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);animation:su .25s ease;transition:opacity .3s}
 .toast.success{border-color:rgba(0,212,177,.4)}
@@ -163,10 +157,8 @@ a.at:hover{color:var(--ac)}
 .toast.error i{color:#ff6b6b}
 .toast.info i{color:var(--ac)}
 @keyframes su{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
-/* ---- SETTINGS ---- */
 .sfield{margin-bottom:16px}
 .sfield label{display:block;font-size:11px;font-weight:600;color:var(--dm);margin-bottom:7px;text-transform:uppercase;letter-spacing:.07em}
-/* ---- RESPONSIVE ---- */
 @media(max-width:768px){
 .sb{position:fixed;left:-240px;top:0;height:100vh;transition:left .22s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 32px rgba(0,0,0,.6)}
 .sb.open{left:0}
@@ -185,7 +177,7 @@ a.at:hover{color:var(--ac)}
 <div id="LV" class="lv">
   <div class="lc">
     <div class="logo-wrap"><div class="logo-icon">F</div><div class="logo-text">FastWebTools</div></div>
-    <p class="sub">Admin Panel v2.5.11</p>
+    <p class="sub">Admin Panel v2.5.12</p>
     <div id="LE" class="lerr"><i class="fa-solid fa-triangle-exclamation"></i><span id="LES">Invalid credentials</span></div>
     <div class="field"><label>Username</label><div class="iw"><input type="text" id="UN" placeholder="Enter username" autocomplete="username" autocapitalize="none" spellcheck="false"></div></div>
     <div class="field"><label>Password</label><div class="iw"><input type="password" id="PW" placeholder="Enter password" autocomplete="current-password"><button type="button" id="TP" title="Show/hide password"><i class="fa-regular fa-eye" id="EI"></i></button></div></div>
@@ -220,7 +212,6 @@ a.at:hover{color:var(--ac)}
       </div>
     </header>
     <div class="cnt">
-      <!-- OVERVIEW -->
       <div class="pg active" id="pg-overview">
         <div class="ph"><div><h2>Overview</h2><div class="subx">Analytics &amp; performance snapshot</div></div><label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dm)"><input type="checkbox" id="AR" checked> Auto-refresh</label></div>
         <div class="fbr">
@@ -256,9 +247,9 @@ a.at:hover{color:var(--ac)}
           </div>
         </div>
       </div>
-      <!-- COMMENTS -->
       <div class="pg" id="pg-comments">
         <div class="ph"><div><h2>Comments</h2><div class="subx">Moderate user comments</div></div></div>
+        <div id="CSTAT"></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
           <div class="sw" style="max-width:280px"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="CS" placeholder="Search by name, content..."></div>
           <select id="SF" class="bg2" style="padding:8px 14px"><option value="all">All statuses</option><option value="published">Published</option><option value="pending">Pending</option><option value="spam">Spam</option></select>
@@ -267,17 +258,14 @@ a.at:hover{color:var(--ac)}
         <div class="card" style="padding:14px" id="CL">Loading...</div>
         <div class="pag"><span id="PI">Page 1</span><div style="display:flex;gap:6px"><button class="bg2" id="PP"><i class="fa-solid fa-chevron-left"></i> Prev</button><button class="bg2" id="NPB">Next <i class="fa-solid fa-chevron-right"></i></button></div></div>
       </div>
-      <!-- TOOL LIKES -->
       <div class="pg" id="pg-tool-likes">
         <div class="ph"><div><h2>Tool Likes</h2><div class="subx">Most liked tools by users</div></div><button class="bg2" id="RTL"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
         <div class="card"><div id="TLL" class="bl">Loading...</div></div>
       </div>
-      <!-- ARTICLE LIKES -->
       <div class="pg" id="pg-article-likes">
         <div class="ph"><div><h2>Article Likes</h2><div class="subx">Most liked blog articles</div></div><button class="bg2" id="RAL"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
         <div class="card"><div id="ALL2" class="bl">Loading...</div></div>
       </div>
-      <!-- SETTINGS -->
       <div class="pg" id="pg-settings">
         <div class="ph"><div><h2>Settings</h2><div class="subx">Account &amp; data management</div></div></div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,500px));gap:16px">
