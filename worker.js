@@ -1,6 +1,6 @@
 const BE="https://fastwebtools-admin.formyworkupwork.workers.dev";
 const CORS={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET,POST,PUT,DELETE,OPTIONS","Access-Control-Allow-Headers":"Content-Type,Authorization"};
-const SW="var C='fwt-v259f2';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{});";
+const SW="var C='fwt-v259g';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{});";
 
 const HTML=`<!DOCTYPE html>
 <html lang="en">
@@ -439,7 +439,7 @@ function loadComments(page){
 }
 
 window.__apv=function(id,s){apiCall("/comment/"+id,{method:"PUT",body:JSON.stringify({status:s})}).then(function(){toast("Comment "+s,"success");loadComments(cPg);}).catch(function(e){toast(e.message,"error");});};
-window.__del=function(id){showMod("Delete comment?","<p style=\"color:var(--dm)\">This cannot be undone.</p>",[{label:"Cancel",fn:closeMod},{label:"Delete",cls:"bd2",fn:function(){closeMod();apiCall("/comment/"+id,{method:"DELETE"}).then(function(){toast("Deleted","success");loadComments(cPg);}).catch(function(e){toast(e.message,"error");});}}]);};
+window.__del=function(id){showMod("Delete comment?",'<p style="color:var(--dm)">This cannot be undone.</p>',[{label:"Cancel",fn:closeMod},{label:"Delete",cls:"bd2",fn:function(){closeMod();apiCall("/comment/"+id,{method:"DELETE"}).then(function(){toast("Deleted","success");loadComments(cPg);}).catch(function(e){toast(e.message,"error");});}}]);};
 
 // TOOL LIKES
 function loadToolLikes(){
