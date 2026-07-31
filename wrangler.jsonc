@@ -1,3 +1,5 @@
+// FastWebTools admin frontend — Cloudflare Workers config
+// Latest deploy: v2.5.17 - fixes article-likes URL bug + adds FWT logo + diagnostics
 {
   "name": "dashbord",
   "main": "worker.js",
