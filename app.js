@@ -17,16 +17,13 @@ function fdt(v){var ms=fdtMs(v);if(!ms)return '-';var d=new Date(ms);if(isNaN(d.
 function dayKey(ms){var d=new Date(ms);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function titleCase(s){var out='',up=true;for(var i=0;i<s.length;i++){var c=s.charAt(i);if(c===' '){up=true;out+=c;}else if(up){out+=c.toUpperCase();up=false;}else{out+=c;}}return out.trim();}
 
-// v2.5.16: normalize any string (URL or slug) into a comparable key.
-// Replaces all non-alphanumeric runs with a single dash, trims edges.
-// So both \"https://www.fastwebtools.online/2026/07/xxx.html\" and
-// \"www-fastwebtools-online-2026-07-xxx.html\" collapse to the same key
-// \"www-fastwebtools-online-2026-07-xxx-html\".
+// v2.5.17: canonicalize slug keys so full URLs and slug IDs collapse to same key.
+// Strips leading https-/http- so \"https-www-...-html\" == \"www-...-html\".
 function normalizeSlug(s){
   if(s==null)return '';
-  return String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  var t=String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  return t.replace(/^https?-/,'');
 }
-// Populate articleUrlMap from any list containing full-URL article entries.
 function populateUrlMap(items){
   if(!items||!items.length)return;
   for(var i=0;i<items.length;i++){
@@ -47,18 +44,15 @@ function titleFromUrl(fullUrl){
   return titleCase(last.split('-').join(' ').split('_').join(' '))||'(unknown)';
 }
 
-// v2.5.16 robust article parser. FIRST checks urlMap (built from popular-articles
-// data, which has real full URLs). This guarantees By Likes uses the same real
-// URLs as By Views. Falls back to slug reconstruction for orphan entries.
+// v2.5.17 parseArticle. FIRST cross-references articleUrlMap (populated from
+// popular-articles which has REAL full URLs). Falls back to slug reconstruction
+// with -html suffix stripping (fix for article_id like \"...-for-free-html\").
 function parseArticle(raw){
   var s=String(raw==null?'':raw).trim();
   if(!s)return {title:'(unknown)',url:SITE+'/'};
-  // 1. If already a full URL, use it directly.
   if(/^https?:\\/\\//i.test(s)){return {title:titleFromUrl(s),url:s};}
-  // 2. Cross-reference against known-good URLs from popular-articles.
   var key=normalizeSlug(s);
   if(key&&articleUrlMap[key]){var fu=articleUrlMap[key];return {title:titleFromUrl(fu),url:fu};}
-  // 3. Fallback: try to reconstruct from slug-encoded pattern.
   var isPath=(s.charAt(0)==='/')||/^\\d{4}\\//.test(s);
   var pathPart='';
   if(isPath){pathPart=(s.charAt(0)==='/')?s:'/'+s;}
@@ -66,8 +60,13 @@ function parseArticle(raw){
     var stripped=s.replace(/^www[-.]?fastwebtools[-.]?online[-.]?/i,'').replace(/^https?[-.:]?/i,'');
     stripped=stripped.replace(/^[-\\/]+/,'');
     var m=stripped.match(/^(\\d{4})[-\\/](\\d{1,2})[-\\/]?(.+)$/);
-    if(m){var slugPart=m[3].replace(/\\.html?$/i,'');pathPart='/'+m[1]+'/'+String(m[2]).padStart(2,'0')+'/'+slugPart+'.html';}
-    else{pathPart='/'+stripped.replace(/\\.html?$/i,'');}
+    if(m){
+      // Strip both .html and -html trailing markers so URL is clean
+      var slugPart=m[3].replace(/\\.html?$/i,'').replace(/-html?$/i,'');
+      pathPart='/'+m[1]+'/'+String(m[2]).padStart(2,'0')+'/'+slugPart+'.html';
+    } else {
+      pathPart='/'+stripped.replace(/\\.html?$/i,'').replace(/-html?$/i,'');
+    }
   }
   var finalUrl=SITE+pathPart;
   return {title:titleFromUrl(finalUrl),url:finalUrl};
@@ -81,7 +80,7 @@ function showMod(title,body,btns){G('MTT').textContent=title;G('MB').innerHTML=b
 function closeMod(){G('MO').classList.remove('show');}
 function closeSb(){var sb=G('SB');if(sb)sb.classList.remove('open');var bd=G('SB_BD');if(bd)bd.classList.remove('show');}
 function showLogin(){G('AV').classList.add('hidden');G('LV').classList.remove('hidden');if(liveT){clearInterval(liveT);liveT=null;}if(arT){clearInterval(arT);arT=null;}}
-function showApp(){G('LV').classList.add('hidden');G('AV').classList.remove('hidden');loadPage('overview');startLive();startAR();}
+function showApp(){G('LV').classList.add('hidden');G('AV').classList.remove('hidden');injectDiagCard();loadPage('overview');startLive();startAR();}
 function logout(){token=null;try{localStorage.removeItem(TK);}catch(e){}showLogin();}
 
 function apiCall(path,opts){opts=opts||{};var h={'Content-Type':'application/json'};if(token)h['Authorization']='Bearer '+token;var qs=path.indexOf('?')===-1?'?':'&';var pathWithBust=path+qs+'_t='+Date.now();return fetch(API+pathWithBust,{method:opts.method||'GET',headers:h,body:opts.body,cache:'no-store'}).then(function(r){if(r.status===401){logout();throw new Error('Session expired');}return r.text().then(function(raw){var d;try{d=raw?JSON.parse(raw):{};}catch(e){throw new Error('Bad response from server');}if(!r.ok||d.success===false)throw new Error(d.message||d.error||('HTTP '+r.status));return d;});});}
@@ -90,9 +89,20 @@ function wr(path){if(!rng)return path;var sep=path.indexOf('?')===-1?'?':'&';ret
 function setRng(from,to){rng=from?{from:from,to:to||from}:null;var fl=G('FL');if(fl)fl.textContent=rng?('Filtered: '+rng.from+(rng.from!==rng.to?' to '+rng.to:'')):'All time';toast(rng?'Filter applied: '+(rng.from===rng.to?rng.from:rng.from+' to '+rng.to):'Filter cleared','info');if(curP==='overview')loadOverview();}
 function presetRng(p){var now=new Date(),to=ymd(now),from;if(p==='all'){setRng(null);return;}if(p==='today'){from=ymd(now);}else if(p==='yesterday'){var y=new Date(now.getTime()-86400000);from=to=ymd(y);}else if(p==='7d'){from=ymd(new Date(now.getTime()-6*86400000));}else if(p==='30d'){from=ymd(new Date(now.getTime()-29*86400000));}else if(p==='month'){from=ymd(new Date(now.getFullYear(),now.getMonth(),1));}setRng(from,to);}
 
+// v2.5.17: inject Backend Diagnostics card into Settings page.
+function injectDiagCard(){
+  if(G('DIAGCARD'))return;
+  var sp=G('pg-settings');if(!sp)return;
+  var grid=sp.querySelector('[style*="display:grid"]');if(!grid)return;
+  var card=document.createElement('div');
+  card.className='card';card.id='DIAGCARD';
+  card.innerHTML='<h3 style="margin-bottom:8px"><i class="fa-solid fa-stethoscope" style="color:#00d4b1;margin-right:6px"></i>Backend Diagnostics</h3><p style="color:var(--dm);font-size:13px;margin-bottom:16px;line-height:1.6">Check deployed backend version and sample data formats.</p><button class="bg2" id="DIAGBTN"><i class="fa-solid fa-play"></i> Run Diagnostics</button><pre id="DIAGOUT" style="margin-top:14px;font-size:11px;background:var(--sf2);padding:12px;border-radius:8px;overflow:auto;max-height:420px;display:none;white-space:pre-wrap;word-break:break-all;color:var(--tx);border:1px solid var(--bd)"></pre>';
+  grid.appendChild(card);
+}
+
 function doLogin(){var u=G('UN').value.trim();var p=G('PW').value;var btn=G('LB');var le=G('LE'),les=G('LES');le.classList.remove('show');if(!u||!p){les.textContent='Please enter username and password';le.classList.add('show');return;}btn.disabled=true;btn.textContent='Signing in...';fetch(API+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p}),cache:'no-store'}).then(function(r){return r.text().then(function(raw){var d;try{d=raw?JSON.parse(raw):{};}catch(e){throw new Error('Bad response from server');}if(!r.ok||!d.success||!d.token){throw new Error(d.message||d.error||('Login failed ('+r.status+')'));}token=d.token;try{if(G('REM').checked)localStorage.setItem(TK,token);}catch(e){}toast('Welcome back!','success');showApp();});}).catch(function(e){les.textContent=e.message||'Network error. Try again.';le.classList.add('show');}).then(function(){btn.disabled=false;btn.textContent='Sign in';});}
 
-function loadPage(name){curP=name;var pgs=document.querySelectorAll('.pg');for(var i=0;i<pgs.length;i++)pgs[i].classList.remove('active');var pg=G('pg-'+name);if(pg)pg.classList.add('active');var nis=document.querySelectorAll('.ni');for(var j=0;j<nis.length;j++)nis[j].classList.toggle('active',nis[j].getAttribute('data-page')===name);var titles={'overview':'Overview','comments':'Comments','tools':'Tools','articles':'Articles','settings':'Settings'};G('PT').textContent=titles[name]||name;closeSb();if(name==='overview')loadOverview();else if(name==='comments')loadComments(1);else if(name==='tools')loadToolsPage();else if(name==='articles')loadArticlesPage();}
+function loadPage(name){curP=name;var pgs=document.querySelectorAll('.pg');for(var i=0;i<pgs.length;i++)pgs[i].classList.remove('active');var pg=G('pg-'+name);if(pg)pg.classList.add('active');var nis=document.querySelectorAll('.ni');for(var j=0;j<nis.length;j++)nis[j].classList.toggle('active',nis[j].getAttribute('data-page')===name);var titles={'overview':'Overview','comments':'Comments','tools':'Tools','articles':'Articles','settings':'Settings'};G('PT').textContent=titles[name]||name;closeSb();if(name==='overview')loadOverview();else if(name==='comments')loadComments(1);else if(name==='tools')loadToolsPage();else if(name==='articles')loadArticlesPage();else if(name==='settings')injectDiagCard();}
 function refreshCur(){if(curP==='overview')loadOverview();else if(curP==='comments')loadComments(cPg);else if(curP==='tools')loadToolsPage();else if(curP==='articles')loadArticlesPage();}
 function startLive(){if(liveT)clearInterval(liveT);pollLive();liveT=setInterval(pollLive,5000);}
 function pollLive(){apiCall('/visitors/realtime').then(function(d){var el=G('LC');if(el)el.textContent=fmt(d.live||0);}).catch(function(){});}
@@ -187,7 +197,7 @@ function renderCommentStats(){var arts={},pub=0,pend=0,spam=0;for(var i=0;i<cAll
 
 function renderComments(){var sq=G('CS').value.trim().toLowerCase();var st=G('SF').value;var list=[];for(var i=0;i<cAll.length;i++){var c=cAll[i];var cs=c.status||'published';if(st&&st!=='all'&&cs!==st)continue;if(sq){var hay=((c.name||'')+' '+(c.comment||'')+' '+(c.article_id||'')).toLowerCase();if(hay.indexOf(sq)===-1)continue;}list.push(c);}var total=list.length;var pages=Math.max(1,Math.ceil(total/PL));if(cPg>pages)cPg=pages;if(cPg<1)cPg=1;var pageList=list.slice((cPg-1)*PL,cPg*PL);G('PI').textContent='Page '+cPg+' of '+pages+(total?' - '+total+' filtered':'');G('PP').disabled=cPg<=1;G('NPB').disabled=cPg>=pages;if(!pageList.length){G('CL').innerHTML='<div style="padding:40px;text-align:center;color:var(--dm)"><i class="fa-solid fa-comment-slash" style="font-size:28px;margin-bottom:10px;display:block"></i>No comments match your filters.</div>';return;}var grp={};var order=[];for(var j=0;j<pageList.length;j++){var c2=pageList[j];var k=c2.article_id||'(no-article)';if(!grp[k]){grp[k]={list:[],latest:0};order.push(k);}grp[k].list.push(c2);var dt=fdtMs(c2.created_at);if(dt>grp[k].latest)grp[k].latest=dt;}order.sort(function(a,b){return grp[b].latest-grp[a].latest;});var h='<div class="al">';for(var m=0;m<order.length;m++){var slug=order[m],g=grp[slug];var parsed=parseArticle(slug),at2=parsed.title,au2=parsed.url;h+='<div class="ai'+(m===0?' open':'')+'"><div class="ah" data-toggle="1"><i class="fa-solid fa-chevron-right achev"></i><div class="atw"><a class="at" href="'+esc(au2)+'" target="_blank" rel="noopener">'+esc(at2)+'</a><div class="asub">Latest: '+fdt(g.latest)+' - '+g.list.length+' comment'+(g.list.length===1?'':'s')+'</div></div><span class="acnt">'+g.list.length+'</span></div><div class="abdy">';for(var l=0;l<g.list.length;l++){var c3=g.list[l];var init=String(c3.name||'?').charAt(0).toUpperCase();var stx=c3.status||'published';h+='<div class="cr"><div class="cav">'+esc(init)+'</div><div class="cm"><div class="chr2"><span class="cu">'+esc(c3.name||'Anonymous')+'</span><span class="sbd '+stx+'">'+stx+'</span><span class="cd">'+fdt(c3.created_at)+'</span></div><div class="ct">'+esc(c3.comment||'')+'</div><div class="ca"><button data-act="published" data-id="'+c3.id+'"><i class="fa-solid fa-check"></i> Approve</button><button data-act="pending" data-id="'+c3.id+'"><i class="fa-solid fa-clock"></i> Pending</button><button data-act="spam" data-id="'+c3.id+'"><i class="fa-solid fa-ban"></i> Spam</button><button class="danger" data-act="delete" data-id="'+c3.id+'"><i class="fa-solid fa-trash"></i> Delete</button></div></div></div>';}h+='</div></div>';}h+='</div>';G('CL').innerHTML=h;}
 
-document.addEventListener('click',function(e){if(!e.target.closest)return;var tog=e.target.closest('.ah[data-toggle]');if(tog&&!e.target.closest('a')){tog.parentElement.classList.toggle('open');return;}var b=e.target.closest('.ca button[data-act]');if(b){var act=b.getAttribute('data-act');var id=b.getAttribute('data-id');if(act==='delete'){showMod('Delete comment?','<p style="color:var(--dm)">This action cannot be undone.</p>',[{label:'Cancel',fn:closeMod},{label:'Delete',cls:'bd2',fn:function(){closeMod();apiCall('/comment/'+id,{method:'DELETE'}).then(function(){toast('Comment deleted','success');loadComments(cPg);}).catch(function(err){toast(err.message,'error');});}}]);}else{apiCall('/comment/'+id,{method:'PUT',body:JSON.stringify({status:act})}).then(function(){toast('Marked as '+act,'success');loadComments(cPg);}).catch(function(err){toast(err.message,'error');});}}var tab=e.target.closest('.tab[data-tab]');if(tab){var scope=tab.getAttribute('data-scope');var val=tab.getAttribute('data-tab');if(scope==='tools'){tabTools=val;renderToolsPage();}else if(scope==='articles'){tabArts=val;renderArticlesPage();}}});
+document.addEventListener('click',function(e){if(!e.target.closest)return;var db=e.target.closest('#DIAGBTN');if(db){var out=G('DIAGOUT');out.style.display='block';out.textContent='Loading...';apiCall('/diag').then(function(d){out.textContent=JSON.stringify(d,null,2);}).catch(function(err){out.textContent='Error: '+err.message+'\\n\\nNote: /api/diag was added in backend v1.0.7. If you see this error, backend may still be on older version.';});return;}var tog=e.target.closest('.ah[data-toggle]');if(tog&&!e.target.closest('a')){tog.parentElement.classList.toggle('open');return;}var b=e.target.closest('.ca button[data-act]');if(b){var act=b.getAttribute('data-act');var id=b.getAttribute('data-id');if(act==='delete'){showMod('Delete comment?','<p style="color:var(--dm)">This action cannot be undone.</p>',[{label:'Cancel',fn:closeMod},{label:'Delete',cls:'bd2',fn:function(){closeMod();apiCall('/comment/'+id,{method:'DELETE'}).then(function(){toast('Comment deleted','success');loadComments(cPg);}).catch(function(err){toast(err.message,'error');});}}]);}else{apiCall('/comment/'+id,{method:'PUT',body:JSON.stringify({status:act})}).then(function(){toast('Marked as '+act,'success');loadComments(cPg);}).catch(function(err){toast(err.message,'error');});}}var tab=e.target.closest('.tab[data-tab]');if(tab){var scope=tab.getAttribute('data-scope');var val=tab.getAttribute('data-tab');if(scope==='tools'){tabTools=val;renderToolsPage();}else if(scope==='articles'){tabArts=val;renderArticlesPage();}}});
 
 var toolsCache={usage:null,likes:null};
 var artsCache={views:null,likes:null};
@@ -196,8 +206,6 @@ function loadToolsPage(){toolsCache={usage:null,likes:null};G('TP_USG').innerHTM
 
 function renderToolsPage(){var tabs=document.querySelectorAll('#pg-tools .tab');for(var i=0;i<tabs.length;i++)tabs[i].classList.toggle('active',tabs[i].getAttribute('data-tab')===tabTools);var showUsage=tabTools==='usage';G('TP_USG_W').style.display=showUsage?'block':'none';G('TP_LK_W').style.display=showUsage?'none':'block';if(showUsage&&toolsCache.usage){renderRankedList('TP_USG',toolsCache.usage,'tool');G('TP_USG_C').textContent='('+toolsCache.usage.length+')';}if(!showUsage&&toolsCache.likes){renderRankedList('TP_LK',toolsCache.likes,'tool');G('TP_LK_C').textContent='('+toolsCache.likes.length+')';}}
 
-// v2.5.16: Articles page loads views FIRST (populates urlMap), THEN loads likes.
-// This guarantees By Likes entries resolve to the same real URLs as By Views.
 function loadArticlesPage(){
   artsCache={views:null,likes:null};
   G('AP_VW').innerHTML='<div style="padding:28px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i></div>';
