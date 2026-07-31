@@ -5,6 +5,7 @@ var SITE='https://www.fastwebtools.online';
 var TOOLS_HUB=SITE+'/2026/07/best-free-online-tools-for-students-freelancers-beginners.html?m=1';
 var token=null,curP='overview',cPg=1,cAll=[],liveT=null,arT=null,rng=null,chartInst=null;
 var tabTools='usage',tabArts='views';
+var articleUrlMap={};
 
 function G(id){return document.getElementById(id);}
 function esc(s){var d=document.createElement('div');d.textContent=String(s==null?'':s);return d.innerHTML;}
@@ -16,15 +17,51 @@ function fdt(v){var ms=fdtMs(v);if(!ms)return '-';var d=new Date(ms);if(isNaN(d.
 function dayKey(ms){var d=new Date(ms);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function titleCase(s){var out='',up=true;for(var i=0;i<s.length;i++){var c=s.charAt(i);if(c===' '){up=true;out+=c;}else if(up){out+=c.toUpperCase();up=false;}else{out+=c;}}return out.trim();}
 
-// v2.5.14 robust article parser: handles full URLs, path-only, and slug-encoded IDs like "www-fastwebtools-online-2026-07-xxx"
+// v2.5.16: normalize any string (URL or slug) into a comparable key.
+// Replaces all non-alphanumeric runs with a single dash, trims edges.
+// So both \"https://www.fastwebtools.online/2026/07/xxx.html\" and
+// \"www-fastwebtools-online-2026-07-xxx.html\" collapse to the same key
+// \"www-fastwebtools-online-2026-07-xxx-html\".
+function normalizeSlug(s){
+  if(s==null)return '';
+  return String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+}
+// Populate articleUrlMap from any list containing full-URL article entries.
+function populateUrlMap(items){
+  if(!items||!items.length)return;
+  for(var i=0;i<items.length;i++){
+    var u=(items[i].url||items[i].name||'');
+    if(u&&/^https?:\\/\\//i.test(u)){
+      var k=normalizeSlug(u);
+      if(k)articleUrlMap[k]=u;
+    }
+  }
+}
+function titleFromUrl(fullUrl){
+  var idx=fullUrl.indexOf('/',8);
+  var path=idx>0?fullUrl.substring(idx):'/';
+  var parts=path.split('/'),last='';
+  for(var i=parts.length-1;i>=0;i--){if(parts[i]){last=parts[i];break;}}
+  last=last.replace(/\\.html?$/i,'');
+  try{last=decodeURIComponent(last);}catch(e){}
+  return titleCase(last.split('-').join(' ').split('_').join(' '))||'(unknown)';
+}
+
+// v2.5.16 robust article parser. FIRST checks urlMap (built from popular-articles
+// data, which has real full URLs). This guarantees By Likes uses the same real
+// URLs as By Views. Falls back to slug reconstruction for orphan entries.
 function parseArticle(raw){
   var s=String(raw==null?'':raw).trim();
   if(!s)return {title:'(unknown)',url:SITE+'/'};
-  var isFull=/^https?:\\/\\//i.test(s);
+  // 1. If already a full URL, use it directly.
+  if(/^https?:\\/\\//i.test(s)){return {title:titleFromUrl(s),url:s};}
+  // 2. Cross-reference against known-good URLs from popular-articles.
+  var key=normalizeSlug(s);
+  if(key&&articleUrlMap[key]){var fu=articleUrlMap[key];return {title:titleFromUrl(fu),url:fu};}
+  // 3. Fallback: try to reconstruct from slug-encoded pattern.
   var isPath=(s.charAt(0)==='/')||/^\\d{4}\\//.test(s);
   var pathPart='';
-  if(isFull){var idx=s.indexOf('/',8);pathPart=idx>0?s.substring(idx):'/';}
-  else if(isPath){pathPart=(s.charAt(0)==='/')?s:'/'+s;}
+  if(isPath){pathPart=(s.charAt(0)==='/')?s:'/'+s;}
   else{
     var stripped=s.replace(/^www[-.]?fastwebtools[-.]?online[-.]?/i,'').replace(/^https?[-.:]?/i,'');
     stripped=stripped.replace(/^[-\\/]+/,'');
@@ -32,14 +69,8 @@ function parseArticle(raw){
     if(m){var slugPart=m[3].replace(/\\.html?$/i,'');pathPart='/'+m[1]+'/'+String(m[2]).padStart(2,'0')+'/'+slugPart+'.html';}
     else{pathPart='/'+stripped.replace(/\\.html?$/i,'');}
   }
-  var parts=pathPart.split('/'),last='';
-  for(var i=parts.length-1;i>=0;i--){if(parts[i]){last=parts[i];break;}}
-  last=last.replace(/\\.html?$/i,'');
-  try{last=decodeURIComponent(last);}catch(e){}
-  var pretty=last.split('-').join(' ').split('_').join(' ');
-  var title=titleCase(pretty)||'(unknown)';
-  var finalUrl=isFull?s:(SITE+pathPart);
-  return {title:title,url:finalUrl};
+  var finalUrl=SITE+pathPart;
+  return {title:titleFromUrl(finalUrl),url:finalUrl};
 }
 function artTitle(u){return parseArticle(u).title;}
 function artUrl(u){return parseArticle(u).url;}
@@ -103,7 +134,6 @@ function loadOverview(){
   var isFiltered=!!rng;
   apiCall(wr('/stats')).then(function(s){
     var st=s.stats||{};
-    // Cards: [key, label, icon, page, alwaysAllTime]
     var cards=[
       ['total_visits','Total Visits','fa-eye','',false],
       ['unique_visitors','Unique Visitors','fa-users','',false],
@@ -141,6 +171,7 @@ function loadOverview(){
   G('AVL').innerHTML='<div style="padding:20px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i></div>';
   apiCall(wr('/popular-articles?limit=1000')).then(function(d){
     var allArts=d.articles||[];
+    populateUrlMap(allArts);
     setVABtn('articles',allArts.length);
     var arts=allArts.slice(0,10);
     if(!arts.length){G('AVL').innerHTML='<div style="color:var(--dm);padding:20px;text-align:center">No article views yet</div>';return;}
@@ -150,7 +181,7 @@ function loadOverview(){
   }).catch(function(e){G('AVL').innerHTML='<div style="color:var(--dg);padding:14px">'+esc(e.message)+'</div>';});
 }
 
-function loadComments(page){cPg=page||1;G('CL').innerHTML='<div style="padding:28px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i> Loading comments...</div>';G('CSTAT').innerHTML='';apiCall('/comments').then(function(d){cAll=d.comments||[];renderCommentStats();renderComments();}).catch(function(e){G('CL').innerHTML='<div style="color:var(--dg);padding:14px"><i class="fa-solid fa-triangle-exclamation"></i> '+esc(e.message)+'</div>';});}
+function loadComments(page){cPg=page||1;G('CL').innerHTML='<div style="padding:28px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i> Loading comments...</div>';G('CSTAT').innerHTML='';apiCall('/popular-articles?limit=1000').then(function(d){populateUrlMap(d.articles||[]);return apiCall('/comments');}).catch(function(){return apiCall('/comments');}).then(function(d){cAll=(d&&d.comments)||[];renderCommentStats();renderComments();}).catch(function(e){G('CL').innerHTML='<div style="color:var(--dg);padding:14px"><i class="fa-solid fa-triangle-exclamation"></i> '+esc(e.message)+'</div>';});}
 
 function renderCommentStats(){var arts={},pub=0,pend=0,spam=0;for(var i=0;i<cAll.length;i++){var c=cAll[i];var aid=c.article_id||'(none)';arts[aid]=(arts[aid]||0)+1;var s=c.status||'published';if(s==='published')pub++;else if(s==='pending')pend++;else if(s==='spam')spam++;}var artCount=0;for(var k in arts)if(arts.hasOwnProperty(k))artCount++;var h='<div class="cst"><div class="csi"><i class="fa-solid fa-comments" style="color:#7c6bff"></i><div><div class="csv">'+cAll.length+'</div><div class="csl">Total comments</div></div></div>';h+='<div class="csi"><i class="fa-solid fa-newspaper" style="color:#00d4b1"></i><div><div class="csv">'+artCount+'</div><div class="csl">Articles with comments</div></div></div>';h+='<div class="csi"><i class="fa-solid fa-check-circle" style="color:#00d4b1"></i><div><div class="csv">'+pub+'</div><div class="csl">Published</div></div></div>';h+='<div class="csi"><i class="fa-solid fa-clock" style="color:#ffb545"></i><div><div class="csv">'+pend+'</div><div class="csl">Pending</div></div></div>';h+='<div class="csi"><i class="fa-solid fa-ban" style="color:#ff6b6b"></i><div><div class="csv">'+spam+'</div><div class="csl">Spam</div></div></div></div>';G('CSTAT').innerHTML=h;}
 
@@ -165,7 +196,27 @@ function loadToolsPage(){toolsCache={usage:null,likes:null};G('TP_USG').innerHTM
 
 function renderToolsPage(){var tabs=document.querySelectorAll('#pg-tools .tab');for(var i=0;i<tabs.length;i++)tabs[i].classList.toggle('active',tabs[i].getAttribute('data-tab')===tabTools);var showUsage=tabTools==='usage';G('TP_USG_W').style.display=showUsage?'block':'none';G('TP_LK_W').style.display=showUsage?'none':'block';if(showUsage&&toolsCache.usage){renderRankedList('TP_USG',toolsCache.usage,'tool');G('TP_USG_C').textContent='('+toolsCache.usage.length+')';}if(!showUsage&&toolsCache.likes){renderRankedList('TP_LK',toolsCache.likes,'tool');G('TP_LK_C').textContent='('+toolsCache.likes.length+')';}}
 
-function loadArticlesPage(){artsCache={views:null,likes:null};G('AP_VW').innerHTML='<div style="padding:28px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i></div>';G('AP_LK').innerHTML='<div style="padding:28px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i></div>';apiCall('/popular-articles?limit=1000').then(function(d){artsCache.views=d.articles||[];renderArticlesPage();}).catch(function(e){G('AP_VW').innerHTML='<div style="color:var(--dg);padding:14px">'+esc(e.message)+'</div>';});apiCall('/article-likes?limit=1000').then(function(d){artsCache.likes=d.articles||d.likes||[];renderArticlesPage();}).catch(function(e){G('AP_LK').innerHTML='<div style="color:var(--dg);padding:14px">'+esc(e.message)+'</div>';});}
+// v2.5.16: Articles page loads views FIRST (populates urlMap), THEN loads likes.
+// This guarantees By Likes entries resolve to the same real URLs as By Views.
+function loadArticlesPage(){
+  artsCache={views:null,likes:null};
+  G('AP_VW').innerHTML='<div style="padding:28px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i></div>';
+  G('AP_LK').innerHTML='<div style="padding:28px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i></div>';
+  apiCall('/popular-articles?limit=1000').then(function(d){
+    var arts=(d&&d.articles)||[];
+    populateUrlMap(arts);
+    artsCache.views=arts;
+    renderArticlesPage();
+    return apiCall('/article-likes?limit=1000');
+  }).then(function(d){
+    var likes=(d&&(d.articles||d.likes))||[];
+    artsCache.likes=likes;
+    renderArticlesPage();
+  }).catch(function(e){
+    var el=G(tabArts==='views'?'AP_VW':'AP_LK');
+    if(el)el.innerHTML='<div style="color:var(--dg);padding:14px">'+esc(e.message)+'</div>';
+  });
+}
 
 function renderArticlesPage(){var tabs=document.querySelectorAll('#pg-articles .tab');for(var i=0;i<tabs.length;i++)tabs[i].classList.toggle('active',tabs[i].getAttribute('data-tab')===tabArts);var showViews=tabArts==='views';G('AP_VW_W').style.display=showViews?'block':'none';G('AP_LK_W').style.display=showViews?'none':'block';if(showViews&&artsCache.views){renderRankedList('AP_VW',artsCache.views,'article');G('AP_VW_C').textContent='('+artsCache.views.length+')';}if(!showViews&&artsCache.likes){renderRankedList('AP_LK',artsCache.likes,'article');G('AP_LK_C').textContent='('+artsCache.likes.length+')';}}
 
