@@ -17,8 +17,6 @@ function fdt(v){var ms=fdtMs(v);if(!ms)return '-';var d=new Date(ms);if(isNaN(d.
 function dayKey(ms){var d=new Date(ms);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function titleCase(s){var out='',up=true;for(var i=0;i<s.length;i++){var c=s.charAt(i);if(c===' '){up=true;out+=c;}else if(up){out+=c.toUpperCase();up=false;}else{out+=c;}}return out.trim();}
 
-// v2.5.17: canonicalize slug keys so full URLs and slug IDs collapse to same key.
-// Strips leading https-/http- so \"https-www-...-html\" == \"www-...-html\".
 function normalizeSlug(s){
   if(s==null)return '';
   var t=String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
@@ -44,9 +42,6 @@ function titleFromUrl(fullUrl){
   return titleCase(last.split('-').join(' ').split('_').join(' '))||'(unknown)';
 }
 
-// v2.5.17 parseArticle. FIRST cross-references articleUrlMap (populated from
-// popular-articles which has REAL full URLs). Falls back to slug reconstruction
-// with -html suffix stripping (fix for article_id like \"...-for-free-html\").
 function parseArticle(raw){
   var s=String(raw==null?'':raw).trim();
   if(!s)return {title:'(unknown)',url:SITE+'/'};
@@ -61,7 +56,6 @@ function parseArticle(raw){
     stripped=stripped.replace(/^[-\\/]+/,'');
     var m=stripped.match(/^(\\d{4})[-\\/](\\d{1,2})[-\\/]?(.+)$/);
     if(m){
-      // Strip both .html and -html trailing markers so URL is clean
       var slugPart=m[3].replace(/\\.html?$/i,'').replace(/-html?$/i,'');
       pathPart='/'+m[1]+'/'+String(m[2]).padStart(2,'0')+'/'+slugPart+'.html';
     } else {
@@ -86,10 +80,11 @@ function logout(){token=null;try{localStorage.removeItem(TK);}catch(e){}showLogi
 function apiCall(path,opts){opts=opts||{};var h={'Content-Type':'application/json'};if(token)h['Authorization']='Bearer '+token;var qs=path.indexOf('?')===-1?'?':'&';var pathWithBust=path+qs+'_t='+Date.now();return fetch(API+pathWithBust,{method:opts.method||'GET',headers:h,body:opts.body,cache:'no-store'}).then(function(r){if(r.status===401){logout();throw new Error('Session expired');}return r.text().then(function(raw){var d;try{d=raw?JSON.parse(raw):{};}catch(e){throw new Error('Bad response from server');}if(!r.ok||d.success===false)throw new Error(d.message||d.error||('HTTP '+r.status));return d;});});}
 
 function wr(path){if(!rng)return path;var sep=path.indexOf('?')===-1?'?':'&';return path+sep+'from='+rng.from+'&to='+rng.to;}
-function setRng(from,to){rng=from?{from:from,to:to||from}:null;var fl=G('FL');if(fl)fl.textContent=rng?('Filtered: '+rng.from+(rng.from!==rng.to?' to '+rng.to:'')):'All time';toast(rng?'Filter applied: '+(rng.from===rng.to?rng.from:rng.from+' to '+rng.to):'Filter cleared','info');if(curP==='overview')loadOverview();}
+
+// v2.5.18: FTB button gets .filtered dot when a range is active.
+function setRng(from,to){rng=from?{from:from,to:to||from}:null;var fl=G('FL');if(fl)fl.textContent=rng?('Filtered: '+rng.from+(rng.from!==rng.to?' to '+rng.to:'')):'All time';var ftb=G('FTB');if(ftb)ftb.classList.toggle('filtered',!!rng);toast(rng?'Filter applied: '+(rng.from===rng.to?rng.from:rng.from+' to '+rng.to):'Filter cleared','info');if(curP==='overview')loadOverview();}
 function presetRng(p){var now=new Date(),to=ymd(now),from;if(p==='all'){setRng(null);return;}if(p==='today'){from=ymd(now);}else if(p==='yesterday'){var y=new Date(now.getTime()-86400000);from=to=ymd(y);}else if(p==='7d'){from=ymd(new Date(now.getTime()-6*86400000));}else if(p==='30d'){from=ymd(new Date(now.getTime()-29*86400000));}else if(p==='month'){from=ymd(new Date(now.getFullYear(),now.getMonth(),1));}setRng(from,to);}
 
-// v2.5.17: inject Backend Diagnostics card into Settings page.
 function injectDiagCard(){
   if(G('DIAGCARD'))return;
   var sp=G('pg-settings');if(!sp)return;
@@ -102,7 +97,8 @@ function injectDiagCard(){
 
 function doLogin(){var u=G('UN').value.trim();var p=G('PW').value;var btn=G('LB');var le=G('LE'),les=G('LES');le.classList.remove('show');if(!u||!p){les.textContent='Please enter username and password';le.classList.add('show');return;}btn.disabled=true;btn.textContent='Signing in...';fetch(API+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p}),cache:'no-store'}).then(function(r){return r.text().then(function(raw){var d;try{d=raw?JSON.parse(raw):{};}catch(e){throw new Error('Bad response from server');}if(!r.ok||!d.success||!d.token){throw new Error(d.message||d.error||('Login failed ('+r.status+')'));}token=d.token;try{if(G('REM').checked)localStorage.setItem(TK,token);}catch(e){}toast('Welcome back!','success');showApp();});}).catch(function(e){les.textContent=e.message||'Network error. Try again.';le.classList.add('show');}).then(function(){btn.disabled=false;btn.textContent='Sign in';});}
 
-function loadPage(name){curP=name;var pgs=document.querySelectorAll('.pg');for(var i=0;i<pgs.length;i++)pgs[i].classList.remove('active');var pg=G('pg-'+name);if(pg)pg.classList.add('active');var nis=document.querySelectorAll('.ni');for(var j=0;j<nis.length;j++)nis[j].classList.toggle('active',nis[j].getAttribute('data-page')===name);var titles={'overview':'Overview','comments':'Comments','tools':'Tools','articles':'Articles','settings':'Settings'};G('PT').textContent=titles[name]||name;closeSb();if(name==='overview')loadOverview();else if(name==='comments')loadComments(1);else if(name==='tools')loadToolsPage();else if(name==='articles')loadArticlesPage();else if(name==='settings')injectDiagCard();}
+// v2.5.18: show FTB (Filter toggle button) only on Overview; hide filter row on page change.
+function loadPage(name){curP=name;var pgs=document.querySelectorAll('.pg');for(var i=0;i<pgs.length;i++)pgs[i].classList.remove('active');var pg=G('pg-'+name);if(pg)pg.classList.add('active');var nis=document.querySelectorAll('.ni');for(var j=0;j<nis.length;j++)nis[j].classList.toggle('active',nis[j].getAttribute('data-page')===name);var titles={'overview':'Overview','comments':'Comments','tools':'Tools','articles':'Articles','settings':'Settings'};G('PT').textContent=titles[name]||name;var ftb=G('FTB');if(ftb)ftb.style.display=name==='overview'?'':'none';if(name!=='overview'){var fbr=G('FBR');if(fbr)fbr.style.display='none';if(ftb)ftb.classList.remove('active');}closeSb();if(name==='overview')loadOverview();else if(name==='comments')loadComments(1);else if(name==='tools')loadToolsPage();else if(name==='articles')loadArticlesPage();else if(name==='settings')injectDiagCard();}
 function refreshCur(){if(curP==='overview')loadOverview();else if(curP==='comments')loadComments(cPg);else if(curP==='tools')loadToolsPage();else if(curP==='articles')loadArticlesPage();}
 function startLive(){if(liveT)clearInterval(liveT);pollLive();liveT=setInterval(pollLive,5000);}
 function pollLive(){apiCall('/visitors/realtime').then(function(d){var el=G('LC');if(el)el.textContent=fmt(d.live||0);}).catch(function(){});}
@@ -139,24 +135,51 @@ function buildEngagementChart(labels,visits,commentsByDay){
   }catch(err){wrap.innerHTML='<div style="color:var(--dg);padding:20px">Chart render error: '+esc(err.message||String(err))+'</div>';}
 }
 
+// v2.5.18: dashboard grouped into 3 sections (Traffic / Articles / Tools).
+// Blog Views card added. Tool Likes / Article Likes cards route to their
+// By Likes sub-tab via data-sub attribute.
 function loadOverview(){
-  G('STG').innerHTML='<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i> Loading stats...</div>';
+  G('STG').innerHTML='<div style="padding:24px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i> Loading stats...</div>';
   var isFiltered=!!rng;
   apiCall(wr('/stats')).then(function(s){
     var st=s.stats||{};
-    var cards=[
-      ['total_visits','Total Visits','fa-eye','',false],
-      ['unique_visitors','Unique Visitors','fa-users','',false],
-      ['total_tool_uses','Tool Uses','fa-wrench','tools',true],
-      ['total_comments','Comments','fa-comments','comments',false],
-      ['total_tool_likes','Tool Likes','fa-thumbs-up','tools',true],
-      ['total_article_likes','Article Likes','fa-heart','articles',true]
+    var sections=[
+      ['Traffic','fa-signal',[
+        ['total_visits','Total Visits','fa-eye','',false,''],
+        ['unique_visitors','Unique Visitors','fa-users','',false,''],
+        ['total_blog_views','Blog Views','fa-book-open','articles',false,'views']
+      ]],
+      ['Articles','fa-newspaper',[
+        ['total_article_likes','Article Likes','fa-heart','articles',true,'likes'],
+        ['total_comments','Comments','fa-comments','comments',false,'']
+      ]],
+      ['Tools','fa-wrench',[
+        ['total_tool_uses','Tool Uses','fa-hammer','tools',true,'usage'],
+        ['total_tool_likes','Tool Likes','fa-thumbs-up','tools',true,'likes']
+      ]]
     ];
     var h='';
-    for(var i=0;i<cards.length;i++){var c=cards[i];var v=Number(st[c[0]]||0);var badge=(isFiltered&&c[4])?'<span class="atg" title="This stat is all-time only">all-time</span>':'';h+='<div class="sc" data-pg="'+c[3]+'" style="'+(c[3]?'cursor:pointer':'')+'"><div class="val">'+fmt(v)+'</div><div class="lbl2">'+c[1]+' '+badge+'</div><i class="fa-solid '+c[2]+' ic"></i></div>';}
+    for(var si=0;si<sections.length;si++){
+      var sec=sections[si];
+      h+='<div class="sec-h"><i class="fa-solid '+sec[1]+'"></i>'+sec[0]+'</div><div class="sg">';
+      var cards=sec[2];
+      for(var i=0;i<cards.length;i++){
+        var c=cards[i];var v=Number(st[c[0]]||0);
+        var badge=(isFiltered&&c[4])?'<span class="atg" title="This stat is all-time only">all-time</span>':'';
+        var pg=c[3],sub=c[5]||'';
+        h+='<div class="sc" data-pg="'+pg+'" data-sub="'+sub+'" style="'+(pg?'cursor:pointer':'')+'"><div class="val">'+fmt(v)+'</div><div class="lbl2">'+c[1]+' '+badge+'</div><i class="fa-solid '+c[2]+' ic"></i></div>';
+      }
+      h+='</div>';
+    }
     G('STG').innerHTML=h;
-    var scs=document.querySelectorAll('.sc[data-pg]');for(var k=0;k<scs.length;k++){(function(el){var pg=el.getAttribute('data-pg');el.addEventListener('click',function(){if(pg)loadPage(pg);});})(scs[k]);}
-  }).catch(function(e){G('STG').innerHTML='<div style="color:var(--dg);grid-column:1/-1;padding:14px"><i class="fa-solid fa-triangle-exclamation"></i> Stats: '+esc(e.message)+'</div>';});
+    var scs=document.querySelectorAll('.sc[data-pg]');
+    for(var k=0;k<scs.length;k++){
+      (function(el){
+        var pg=el.getAttribute('data-pg');var sub=el.getAttribute('data-sub')||'';
+        el.addEventListener('click',function(){if(!pg)return;if(sub){if(pg==='tools')tabTools=sub;if(pg==='articles')tabArts=sub;}loadPage(pg);});
+      })(scs[k]);
+    }
+  }).catch(function(e){G('STG').innerHTML='<div style="color:var(--dg);padding:14px"><i class="fa-solid fa-triangle-exclamation"></i> Stats: '+esc(e.message)+'</div>';});
 
   var daPath=rng?wr('/daily-activity'):'/daily-activity?days=30';
   var labels=[],visits=[];
@@ -241,6 +264,8 @@ var navBtns=document.querySelectorAll('[data-nav]');for(var nn=0;nn<navBtns.leng
 G('MT').addEventListener('click',function(e){e.stopPropagation();var sb=G('SB'),bd=G('SB_BD');var isOpen=sb.classList.toggle('open');if(bd)bd.classList.toggle('show',isOpen);});
 var sbBd=G('SB_BD');if(sbBd)sbBd.addEventListener('click',closeSb);
 G('RB').addEventListener('click',refreshCur);
+// v2.5.18: Filter toggle button — clicking shows/hides the filter row.
+var ftbEl=G('FTB');if(ftbEl){ftbEl.addEventListener('click',function(){var fbr=G('FBR');if(!fbr)return;var isOpen=fbr.style.display!=='none';fbr.style.display=isOpen?'none':'flex';ftbEl.classList.toggle('active',!isOpen);});}
 G('TG').addEventListener('click',function(){var cur=document.documentElement.getAttribute('data-theme')||'dark';var next=cur==='dark'?'light':'dark';applyTheme(next);try{localStorage.setItem(TH,next);}catch(e){}});
 G('LGOUT').addEventListener('click',logout);
 G('PP').addEventListener('click',function(){if(cPg>1){cPg--;renderComments();}});
