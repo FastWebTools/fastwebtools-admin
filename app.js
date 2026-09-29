@@ -3,7 +3,7 @@ export default `(function(){
 var API='/api',TK='fwt_token',TH='fwt_theme',PL=20;
 var SITE='https://www.fastwebtools.online';
 var TOOLS_HUB=SITE+'/';
-var token=null,curP='overview',cPg=1,cAll=[],liveT=null,arT=null,rng=null,chartInst=null;
+var token=null,curP='overview',cPg=1,cAll=[],liveT=null,arT=null,rng=null,chartInst=null,lastStats=null,lastUpdated=0;
 var tabTools='usage',tabArts='views';
 var articleUrlMap={};
 
@@ -80,9 +80,17 @@ function logout(){token=null;try{localStorage.removeItem(TK);}catch(e){}showLogi
 function apiCall(path,opts){opts=opts||{};var h={'Content-Type':'application/json'};if(token)h['Authorization']='Bearer '+token;var qs=path.indexOf('?')===-1?'?':'&';var pathWithBust=path+qs+'_t='+Date.now();return fetch(API+pathWithBust,{method:opts.method||'GET',headers:h,body:opts.body,cache:'no-store'}).then(function(r){if(r.status===401){logout();throw new Error('Session expired');}return r.text().then(function(raw){var d;try{d=raw?JSON.parse(raw):{};}catch(e){throw new Error('Bad response from server');}if(!r.ok||d.success===false)throw new Error(d.message||d.error||('HTTP '+r.status));return d;});});}
 
 function wr(path){if(!rng)return path;var sep=path.indexOf('?')===-1?'?':'&';return path+sep+'from='+rng.from+'&to='+rng.to;}
+function prevRng(){if(!rng)return null;var a=new Date(rng.from+'T00:00:00Z'),b=new Date(rng.to+'T00:00:00Z');if(isNaN(a.getTime())||isNaN(b.getTime()))return null;var days=Math.round((b-a)/86400000)+1;var pe=new Date(a.getTime()-86400000),ps=new Date(pe.getTime()-(days-1)*86400000);return {from:ymd(ps),to:ymd(pe)};}
+function deltaHtml(cur,prev){cur=Number(cur)||0;prev=Number(prev)||0;if(!prev)return cur?'<span class="delta up"><i class="fa-solid fa-arrow-up"></i> New</span>':'<span class="delta flat">—</span>';var d=((cur-prev)/prev)*100,cls=d>0?'up':d<0?'down':'flat',ic=d>0?'fa-arrow-up':d<0?'fa-arrow-down':'fa-minus';return '<span class="delta '+cls+'"><i class="fa-solid '+ic+'"></i> '+Math.abs(d).toFixed(0)+'%</span>';}
+function setUpdated(){lastUpdated=Date.now();var el=G('HUP');if(el)el.textContent='Just now';}
+function updateHealth(){var el=G('HAPI');if(!el)return;apiCall('/diag').then(function(d){var ok=!!(d&&d.worker_version);el.classList.toggle('bad',!ok);el.innerHTML='<i class="fa-solid '+(ok?'fa-circle-check':'fa-triangle-exclamation')+'"></i><div><div class="hv">'+(ok?'All systems operational':'Check diagnostics')+'</div><div class="hl">Admin API '+esc(d.worker_version||'unknown')+'</div></div>';}).catch(function(){el.classList.add('bad');el.innerHTML='<i class="fa-solid fa-triangle-exclamation"></i><div><div class="hv">API check failed</div><div class="hl">Open Settings → Diagnostics</div></div>';});}
+function csvCell(v){var x=String(v==null?'':v);return /[",\\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x;}
+function downloadCsv(name,rows){if(!rows||!rows.length){toast('No data available to export','error');return;}var cols=Object.keys(rows[0]),out=[cols.map(csvCell).join(',')];for(var i=0;i<rows.length;i++){out.push(cols.map(function(k){return csvCell(rows[i][k]);}).join(','));}var blob=new Blob(['\ufeff'+out.join('\\n')],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name+'-'+ymd(new Date())+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},500);toast('CSV exported successfully','success');}
+function exportCurrent(){var rows=[],name='fastwebtools-'+curP;if(curP==='overview'&&lastStats){for(var k in lastStats)if(lastStats.hasOwnProperty(k))rows.push({metric:k,value:lastStats[k],range:rng?(rng.from+' to '+rng.to):'All time'});}else if(curP==='comments'){for(var i=0;i<cAll.length;i++)rows.push({id:cAll[i].id,article:cAll[i].article_id,name:cAll[i].name,status:cAll[i].status||'published',comment:cAll[i].comment,date:cAll[i].created_at});}else if(curP==='tools'){var ti=tabTools==='usage'?toolsCache.usage:toolsCache.likes;for(var j=0;j<(ti||[]).length;j++)rows.push({tool:ti[j].name||ti[j].tool_id,count:ti[j].count,type:tabTools,range:rng?(rng.from+' to '+rng.to):'All time'});}else if(curP==='articles'){var ai=tabArts==='views'?artsCache.views:artsCache.likes;for(var n=0;n<(ai||[]).length;n++)rows.push({article:ai[n].url||ai[n].name||ai[n].article_id,count:ai[n].count,type:tabArts,range:rng?(rng.from+' to '+rng.to):'All time'});}else{toast('No export is available on this page','info');return;}downloadCsv(name,rows);}
+function filterSort(items,kind,q,sort){var out=(items||[]).slice(),query=String(q||'').trim().toLowerCase();if(query)out=out.filter(function(it){var raw=it.url||it.name||it.article_id||it.tool_id||'';var nm=kind==='article'?parseArticle(raw).title:(it.name||it.tool_id||raw);return String(nm).toLowerCase().indexOf(query)!==-1;});out.sort(function(a,b){var an=String(a.name||a.tool_id||a.url||a.article_id||''),bn=String(b.name||b.tool_id||b.url||b.article_id||'');if(sort==='az')return an.localeCompare(bn);var av=Number(a.count)||0,bv=Number(b.count)||0;return sort==='low'?av-bv:bv-av;});return out;}
 
 // v2.5.18: FTB button gets .filtered dot when a range is active.
-function setRng(from,to){rng=from?{from:from,to:to||from}:null;var fl=G('FL');if(fl)fl.textContent=rng?('Filtered: '+rng.from+(rng.from!==rng.to?' to '+rng.to:'')):'All time';var ftb=G('FTB');if(ftb)ftb.classList.toggle('filtered',!!rng);toast(rng?'Filter applied: '+(rng.from===rng.to?rng.from:rng.from+' to '+rng.to):'Filter cleared','info');if(curP==='overview')loadOverview();}
+function setRng(from,to){rng=from?{from:from,to:to||from}:null;var fl=G('FL');if(fl)fl.textContent=rng?('Filtered: '+rng.from+(rng.from!==rng.to?' to '+rng.to:'')):'All time';var hr=G('HRNG');if(hr)hr.textContent=rng?(rng.from+(rng.from!==rng.to?' → '+rng.to:'')):'All time';var ftb=G('FTB');if(ftb)ftb.classList.toggle('filtered',!!rng);toast(rng?'Filter applied: '+(rng.from===rng.to?rng.from:rng.from+' to '+rng.to):'Filter cleared','info');refreshCur();}
 function presetRng(p){var now=new Date(),to=ymd(now),from;if(p==='all'){setRng(null);return;}if(p==='today'){from=ymd(now);}else if(p==='yesterday'){var y=new Date(now.getTime()-86400000);from=to=ymd(y);}else if(p==='7d'){from=ymd(new Date(now.getTime()-6*86400000));}else if(p==='30d'){from=ymd(new Date(now.getTime()-29*86400000));}else if(p==='month'){from=ymd(new Date(now.getFullYear(),now.getMonth(),1));}setRng(from,to);}
 
 function injectDiagCard(){
@@ -98,7 +106,7 @@ function injectDiagCard(){
 function doLogin(){var u=G('UN').value.trim();var p=G('PW').value;var btn=G('LB');var le=G('LE'),les=G('LES');le.classList.remove('show');if(!u||!p){les.textContent='Please enter username and password';le.classList.add('show');return;}btn.disabled=true;btn.textContent='Signing in...';fetch(API+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p}),cache:'no-store'}).then(function(r){return r.text().then(function(raw){var d;try{d=raw?JSON.parse(raw):{};}catch(e){throw new Error('Bad response from server');}if(!r.ok||!d.success||!d.token){throw new Error(d.message||d.error||('Login failed ('+r.status+')'));}token=d.token;try{if(G('REM').checked)localStorage.setItem(TK,token);}catch(e){}toast('Welcome back!','success');showApp();});}).catch(function(e){les.textContent=e.message||'Network error. Try again.';le.classList.add('show');}).then(function(){btn.disabled=false;btn.textContent='Sign in';});}
 
 // v2.5.18: show FTB (Filter toggle button) only on Overview; hide filter row on page change.
-function loadPage(name){curP=name;var pgs=document.querySelectorAll('.pg');for(var i=0;i<pgs.length;i++)pgs[i].classList.remove('active');var pg=G('pg-'+name);if(pg)pg.classList.add('active');var nis=document.querySelectorAll('.ni');for(var j=0;j<nis.length;j++)nis[j].classList.toggle('active',nis[j].getAttribute('data-page')===name);var titles={'overview':'Overview','comments':'Comments','tools':'Tools','articles':'Articles','settings':'Settings'};G('PT').textContent=titles[name]||name;var ftb=G('FTB');if(ftb)ftb.style.display=name==='overview'?'':'none';if(name!=='overview'){var fbr=G('FBR');if(fbr)fbr.style.display='none';if(ftb)ftb.classList.remove('active');}closeSb();if(name==='overview')loadOverview();else if(name==='comments')loadComments(1);else if(name==='tools')loadToolsPage();else if(name==='articles')loadArticlesPage();else if(name==='settings')injectDiagCard();}
+function loadPage(name){curP=name;var pgs=document.querySelectorAll('.pg');for(var i=0;i<pgs.length;i++)pgs[i].classList.remove('active');var pg=G('pg-'+name);if(pg)pg.classList.add('active');var nis=document.querySelectorAll('.ni,.mni');for(var j=0;j<nis.length;j++)nis[j].classList.toggle('active',nis[j].getAttribute('data-page')===name);var titles={'overview':'Overview','comments':'Comments','tools':'Tools','articles':'Articles','settings':'Settings'};G('PT').textContent=titles[name]||name;var ftb=G('FTB');if(ftb)ftb.style.display=name==='settings'?'none':'';var exb=G('EXB');if(exb)exb.style.display=name==='settings'?'none':'';closeSb();if(name==='overview')loadOverview();else if(name==='comments')loadComments(1);else if(name==='tools')loadToolsPage();else if(name==='articles')loadArticlesPage();else if(name==='settings')injectDiagCard();}
 function refreshCur(){if(curP==='overview')loadOverview();else if(curP==='comments')loadComments(cPg);else if(curP==='tools')loadToolsPage();else if(curP==='articles')loadArticlesPage();}
 function startLive(){if(liveT)clearInterval(liveT);pollLive();liveT=setInterval(pollLive,5000);}
 function pollLive(){apiCall('/visitors/realtime').then(function(d){var el=G('LC');if(el)el.textContent=fmt(d.live||0);}).catch(function(){});}
@@ -139,10 +147,12 @@ function buildEngagementChart(labels,visits,commentsByDay){
 // Blog Views card added. Tool Likes / Article Likes cards route to their
 // By Likes sub-tab via data-sub attribute.
 function loadOverview(){
+  updateHealth();var hr=G('HRNG');if(hr)hr.textContent=rng?(rng.from+(rng.from!==rng.to?' → '+rng.to:'')):'All time';
   G('STG').innerHTML='<div style="padding:24px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i> Loading stats...</div>';
   var isFiltered=!!rng;
-  apiCall(wr('/stats')).then(function(s){
-    var st=s.stats||{};
+  var pr=prevRng(),prevPath=pr?('/stats?from='+pr.from+'&to='+pr.to):null;
+  Promise.all([apiCall(wr('/stats')),prevPath?apiCall(prevPath):Promise.resolve({stats:{}})]).then(function(rs){
+    var s=rs[0],st=s.stats||{},pst=(rs[1]&&rs[1].stats)||{};lastStats=st;setUpdated();
     var sections=[
       ['Traffic','fa-signal',[
         ['total_visits','Total Visits','fa-eye','',false,''],
@@ -166,8 +176,8 @@ function loadOverview(){
       for(var i=0;i<cards.length;i++){
         var c=cards[i];var v=Number(st[c[0]]||0);
         var badge=(isFiltered&&c[4])?'<span class="atg" title="This stat is all-time only">all-time</span>':'';
-        var pg=c[3],sub=c[5]||'';
-        h+='<div class="sc" data-pg="'+pg+'" data-sub="'+sub+'" style="'+(pg?'cursor:pointer':'')+'"><div class="val">'+fmt(v)+'</div><div class="lbl2">'+c[1]+' '+badge+'</div><i class="fa-solid '+c[2]+' ic"></i></div>';
+        var cmp=isFiltered?deltaHtml(v,pst[c[0]]):'';var pg=c[3],sub=c[5]||'';
+        h+='<div class="sc" data-pg="'+pg+'" data-sub="'+sub+'" style="'+(pg?'cursor:pointer':'')+'"><div class="val">'+fmt(v)+'</div><div class="lbl2">'+c[1]+' '+badge+' '+cmp+'</div><i class="fa-solid '+c[2]+' ic"></i></div>';
       }
       h+='</div>';
     }
@@ -214,7 +224,7 @@ function loadOverview(){
   }).catch(function(e){G('AVL').innerHTML='<div style="color:var(--dg);padding:14px">'+esc(e.message)+'</div>';});
 }
 
-function loadComments(page){cPg=page||1;G('CL').innerHTML='<div style="padding:28px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i> Loading comments...</div>';G('CSTAT').innerHTML='';apiCall(wr('/popular-articles?limit=1000')).then(function(d){populateUrlMap(d.articles||[]);return apiCall(wr('/comments'));}).catch(function(){return apiCall(wr('/comments'));}).then(function(d){cAll=(d&&d.comments)||[];renderCommentStats();renderComments();}).catch(function(e){G('CL').innerHTML='<div style="color:var(--dg);padding:14px"><i class="fa-solid fa-triangle-exclamation"></i> '+esc(e.message)+'</div>';});}
+function loadComments(page){cPg=page||1;G('CL').innerHTML='<div style="padding:28px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i> Loading comments...</div>';G('CSTAT').innerHTML='';apiCall(wr('/popular-articles?limit=1000')).then(function(d){populateUrlMap(d.articles||[]);return apiCall(wr('/comments'));}).catch(function(){return apiCall(wr('/comments'));}).then(function(d){cAll=(d&&d.comments)||[];setUpdated();renderCommentStats();renderComments();}).catch(function(e){G('CL').innerHTML='<div style="color:var(--dg);padding:14px"><i class="fa-solid fa-triangle-exclamation"></i> '+esc(e.message)+'</div>';});}
 
 function renderCommentStats(){var arts={},pub=0,pend=0,spam=0;for(var i=0;i<cAll.length;i++){var c=cAll[i];var aid=c.article_id||'(none)';arts[aid]=(arts[aid]||0)+1;var s=c.status||'published';if(s==='published')pub++;else if(s==='pending')pend++;else if(s==='spam')spam++;}var artCount=0;for(var k in arts)if(arts.hasOwnProperty(k))artCount++;var h='<div class="cst"><div class="csi"><i class="fa-solid fa-comments" style="color:#7c6bff"></i><div><div class="csv">'+cAll.length+'</div><div class="csl">Total comments</div></div></div>';h+='<div class="csi"><i class="fa-solid fa-newspaper" style="color:#00d4b1"></i><div><div class="csv">'+artCount+'</div><div class="csl">Articles with comments</div></div></div>';h+='<div class="csi"><i class="fa-solid fa-check-circle" style="color:#00d4b1"></i><div><div class="csv">'+pub+'</div><div class="csl">Published</div></div></div>';h+='<div class="csi"><i class="fa-solid fa-clock" style="color:#ffb545"></i><div><div class="csv">'+pend+'</div><div class="csl">Pending</div></div></div>';h+='<div class="csi"><i class="fa-solid fa-ban" style="color:#ff6b6b"></i><div><div class="csv">'+spam+'</div><div class="csl">Spam</div></div></div></div>';G('CSTAT').innerHTML=h;}
 
@@ -227,7 +237,7 @@ var artsCache={views:null,likes:null};
 
 function loadToolsPage(){toolsCache={usage:null,likes:null};G('TP_USG').innerHTML='<div style="padding:28px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i></div>';G('TP_LK').innerHTML='<div style="padding:28px;text-align:center;color:var(--dm)"><i class="fa-solid fa-spinner fa-spin"></i></div>';apiCall(wr('/popular-tools?limit=1000')).then(function(d){toolsCache.usage=d.tools||[];renderToolsPage();}).catch(function(e){G('TP_USG').innerHTML='<div style="color:var(--dg);padding:14px">'+esc(e.message)+'</div>';});apiCall(wr('/tool-likes?limit=1000')).then(function(d){toolsCache.likes=d.tools||d.likes||[];renderToolsPage();}).catch(function(e){G('TP_LK').innerHTML='<div style="color:var(--dg);padding:14px">'+esc(e.message)+'</div>';});}
 
-function renderToolsPage(){var tabs=document.querySelectorAll('#pg-tools .tab');for(var i=0;i<tabs.length;i++)tabs[i].classList.toggle('active',tabs[i].getAttribute('data-tab')===tabTools);var showUsage=tabTools==='usage';G('TP_USG_W').style.display=showUsage?'block':'none';G('TP_LK_W').style.display=showUsage?'none':'block';if(showUsage&&toolsCache.usage){renderRankedList('TP_USG',toolsCache.usage,'tool');G('TP_USG_C').textContent='('+toolsCache.usage.length+')';}if(!showUsage&&toolsCache.likes){renderRankedList('TP_LK',toolsCache.likes,'tool');G('TP_LK_C').textContent='('+toolsCache.likes.length+')';}}
+function renderToolsPage(){var tabs=document.querySelectorAll('#pg-tools .tab');for(var i=0;i<tabs.length;i++)tabs[i].classList.toggle('active',tabs[i].getAttribute('data-tab')===tabTools);var showUsage=tabTools==='usage',items=showUsage?toolsCache.usage:toolsCache.likes,q=G('TPS')?G('TPS').value:'',sort=G('TPSORT')?G('TPSORT').value:'high',list=filterSort(items,'tool',q,sort);G('TP_USG_W').style.display=showUsage?'block':'none';G('TP_LK_W').style.display=showUsage?'none':'block';if(items){renderRankedList(showUsage?'TP_USG':'TP_LK',list,'tool');G(showUsage?'TP_USG_C':'TP_LK_C').textContent='('+list.length+')';setUpdated();}}
 
 function loadArticlesPage(){
   artsCache={views:null,likes:null};
@@ -249,7 +259,7 @@ function loadArticlesPage(){
   });
 }
 
-function renderArticlesPage(){var tabs=document.querySelectorAll('#pg-articles .tab');for(var i=0;i<tabs.length;i++)tabs[i].classList.toggle('active',tabs[i].getAttribute('data-tab')===tabArts);var showViews=tabArts==='views';G('AP_VW_W').style.display=showViews?'block':'none';G('AP_LK_W').style.display=showViews?'none':'block';if(showViews&&artsCache.views){renderRankedList('AP_VW',artsCache.views,'article');G('AP_VW_C').textContent='('+artsCache.views.length+')';}if(!showViews&&artsCache.likes){renderRankedList('AP_LK',artsCache.likes,'article');G('AP_LK_C').textContent='('+artsCache.likes.length+')';}}
+function renderArticlesPage(){var tabs=document.querySelectorAll('#pg-articles .tab');for(var i=0;i<tabs.length;i++)tabs[i].classList.toggle('active',tabs[i].getAttribute('data-tab')===tabArts);var showViews=tabArts==='views',items=showViews?artsCache.views:artsCache.likes,q=G('APS')?G('APS').value:'',sort=G('APSORT')?G('APSORT').value:'high',list=filterSort(items,'article',q,sort);G('AP_VW_W').style.display=showViews?'block':'none';G('AP_LK_W').style.display=showViews?'none':'block';if(items){renderRankedList(showViews?'AP_VW':'AP_LK',list,'article');G(showViews?'AP_VW_C':'AP_LK_C').textContent='('+list.length+')';setUpdated();}}
 
 function renderRankedList(elId,items,kind){var el=G(elId);if(!items||!items.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--dm)">No data yet</div>';return;}var mx=Number(items[0].count||0)||1;var h='';for(var i=0;i<items.length;i++){var it=items[i];var raw=it.url||it.name||it.article_id||it.tool_id||'';var displayName,url;if(kind==='tool'){displayName=it.name||it.tool_id||raw||'Unknown';url=toolUrl(displayName);}else{var parsed=parseArticle(raw);displayName=parsed.title;url=parsed.url;}var c=Number(it.count||0);var p=Math.round(c/mx*100);h+='<div class="br"><span class="rnk">'+(i+1)+'</span><a class="bn" href="'+esc(url)+'" target="_blank" rel="noopener" title="'+esc(url)+'">'+esc(displayName)+'</a><span class="bt"><span class="bf" style="width:'+p+'%"></span></span><span class="bv">'+fmt(c)+'</span></div>';}el.innerHTML=h;}
 
@@ -259,11 +269,14 @@ G('LB').addEventListener('click',doLogin);
 G('UN').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();G('PW').focus();}});
 G('PW').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();doLogin();}});
 G('TP').addEventListener('click',function(){var pw=G('PW'),ei=G('EI');if(pw.type==='password'){pw.type='text';ei.className='fa-regular fa-eye-slash';}else{pw.type='password';ei.className='fa-regular fa-eye';}});
-var nis=document.querySelectorAll('.ni');for(var ii=0;ii<nis.length;ii++){(function(el){el.addEventListener('click',function(){loadPage(el.getAttribute('data-page'));});})(nis[ii]);}
+var nis=document.querySelectorAll('.ni,.mni');for(var ii=0;ii<nis.length;ii++){(function(el){el.addEventListener('click',function(){loadPage(el.getAttribute('data-page'));});})(nis[ii]);}
 var navBtns=document.querySelectorAll('[data-nav]');for(var nn=0;nn<navBtns.length;nn++){(function(el){el.addEventListener('click',function(){loadPage(el.getAttribute('data-nav'));});})(navBtns[nn]);}
 G('MT').addEventListener('click',function(e){e.stopPropagation();var sb=G('SB'),bd=G('SB_BD');var isOpen=sb.classList.toggle('open');if(bd)bd.classList.toggle('show',isOpen);});
 var sbBd=G('SB_BD');if(sbBd)sbBd.addEventListener('click',closeSb);
 G('RB').addEventListener('click',refreshCur);
+G('EXB').addEventListener('click',exportCurrent);
+G('TPS').addEventListener('input',renderToolsPage);G('TPSORT').addEventListener('change',renderToolsPage);
+G('APS').addEventListener('input',renderArticlesPage);G('APSORT').addEventListener('change',renderArticlesPage);
 // v2.5.18: Filter toggle button — clicking shows/hides the filter row.
 var ftbEl=G('FTB');if(ftbEl){ftbEl.addEventListener('click',function(){var fbr=G('FBR');if(!fbr)return;var isOpen=fbr.style.display!=='none';fbr.style.display=isOpen?'none':'flex';ftbEl.classList.toggle('active',!isOpen);});}
 G('TG').addEventListener('click',function(){var cur=document.documentElement.getAttribute('data-theme')||'dark';var next=cur==='dark'?'light':'dark';applyTheme(next);try{localStorage.setItem(TH,next);}catch(e){}});
