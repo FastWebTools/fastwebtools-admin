@@ -1,7 +1,7 @@
 // FastWebTools admin frontend — Cloudflare Workers config
 // Latest deploy: v2.15.0 - smart badges, supplied brand logo, mobile account controls
 {
-  "name": "dashbord",
+  "name": "fastwebtools-admin-github",
   "main": "worker.js",
   "compatibility_date": "2026-07-23",
   "services": [
