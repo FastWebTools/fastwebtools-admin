@@ -1,0 +1,1 @@
+{"name":"dashbord","main":"status-entry-step5.mjs","compatibility_date":"2026-07-23","build":{"command":"node build-status-step5.mjs"},"services":[{"binding":"BACKEND","service":"fastwebtools-admin"},{"binding":"STATUS","service":"fastwebtools-status"}]}
