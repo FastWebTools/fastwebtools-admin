@@ -1,0 +1,1 @@
+{"name":"dashbord","main":"status-entry-step2.mjs","compatibility_date":"2026-07-23","build":{"command":"node build-status-step2.mjs"},"services":[{"binding":"BACKEND","service":"fastwebtools-admin"},{"binding":"STATUS","service":"fastwebtools-status"}]}
