@@ -1,0 +1,23 @@
+{
+  "step": 5,
+  "prepared": true,
+  "live": false,
+  "implementation_commit": "0a73e64e943da5ae7867a92f2aaff9cd47fa65fc",
+  "branch": "feat/admin-status-formatting-step5",
+  "frozen_app_sha256": "7098c62ae1a4803cc5466da677587145a3dc6c0aeecd44f2c7202be921cf1dc5",
+  "html_sha256": "325e7155ea3cbaf14bc7df480e317af428b450d2c22f5b50f8c9d4eba4e6aff8",
+  "isolated_browser_checks": 48,
+  "isolated_renderer_checks": 22,
+  "production_test_writes": 0,
+  "compiled_exact_source_check": true,
+  "compiled_saved_state_publish_guards": true,
+  "live_step4_baseline_and_public_renderer_match": true,
+  "blocker": "GET https://www.fastwebtools.online/status/api/status returned HTTP 503 in deployment preflight on both attempts. Deployment stopped before Worker upload. Cause not determined; do not bypass the baseline check.",
+  "attempts": ["2a597ba5-c047-495a-b297-4698db5ad8ea", "fb57cb01-394c-47c9-86da-dd871725b1de"],
+  "current_frontend_still_step4": "5a2ead34-3757-4d6b-bf14-9c2028bb4df0",
+  "status_backend_unchanged": "3f777100-7673-43f4-b187-be92207339e8",
+  "auth_backend_unchanged": "75f49cfe-3baa-457c-98ff-01c0c39062eb",
+  "main_api_unchanged": "10e96bdc-2d62-464f-949e-4694e10e365f",
+  "preview_trigger_restored": true,
+  "next": "Diagnose existing public Status API 503, then rerun full gated Step 5 deployment. No main merge or other Worker changes performed."
+}
