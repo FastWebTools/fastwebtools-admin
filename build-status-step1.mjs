@@ -1,0 +1,10 @@
+import fs from'node:fs';import assert from'node:assert/strict';import{createHash}from'node:crypto';import vm from'node:vm';import original from'./app.js';const root=new URL('./',import.meta.url);const hash=s=>createHash('sha256').update(s).digest('hex');let app=original;const replace=(old,value)=>{assert(app.includes(old),'Missing app anchor '+old.slice(0,80));app=app.replace(old,value)};
+replace('function showLogin(){',"function showLogin(){statusStop();");replace("loadPage('overview');loadNavBadges();startLive();startAR();","loadPage(statusRoute(),true);loadNavBadges();startLive();startAR();");
+replace('function loadPage(name){curP=name;',"function loadPage(name,fromHistory){if(!G('pg-'+name))name='overview';statusStop();if(!fromHistory&&location.hash!=='#'+name)history.pushState(null,'','#'+name);curP=name;");
+replace("'settings':'Settings'}","'settings':'Settings','status':'Status'}");
+app=app.replaceAll("name==='settings'?'none':''","(name==='settings'||name==='status')?'none':''");
+replace("closeSb();if(['comments'","closeSb();var fbr=G('FBR');if(name==='status'&&fbr)fbr.style.display='none';var mn=document.querySelector('.mnav'),on=mn&&mn.querySelector('.active');if(mn&&on)mn.scrollLeft=on.offsetLeft-mn.clientWidth/2+on.clientWidth/2;if(['comments'");
+replace("else if(name==='settings'){injectDiagCard();loadSettingsInfo();}","else if(name==='status'){statusRender();statusLoad();}else if(name==='settings'){injectDiagCard();loadSettingsInfo();}");
+replace("else if(curP==='articles')loadArticlesPage();loadNavBadges();","else if(curP==='articles')loadArticlesPage();else if(curP==='status')statusLoad();loadNavBadges();");
+const client=fs.readFileSync(new URL('status-client.js',root),'utf8');replace("try{applyTheme(localStorage.getItem(TH)||'dark');}",client+"\ntry{applyTheme(localStorage.getItem(TH)||'dark');}");
+new vm.Script(app);fs.writeFileSync(new URL('status-app.mjs',root),'// Frozen browser code; never serialize functions at runtime.\nexport default '+JSON.stringify(app)+';\n');console.log('STATUS_STEP1_APP_SHA256 '+hash(app));
