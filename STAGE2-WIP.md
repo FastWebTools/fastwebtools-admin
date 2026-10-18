@@ -1,24 +1,19 @@
-# Stage 2 — work in progress, NOT DEPLOYED
+# Stage 2 — implementation and field-switch fix completed
 
-Based on Stage 1 commit ca811c7975f7d6eb670718852706ee6ee13fcbe7. This commit records the deployment hold, not a completed Stage 2 release.
+This supersedes the previous WIP deployment hold. Full frontend patch is now in this branch; no manual ZIP upload is needed. Live deployment state is recorded separately after native Cloudflare verification.
 
-## Implementation in review
+## Fix
 
-- Card/notice field Edit requests from the isolated actual viewer renderer.
-- Focused parent-owned private content editor and existing advanced fields.
-- Markdown toolbar, HTTPS link dialog, Undo/Redo, with existing autosave and server validation.
-- Saved private revision rendered as a labelled preview in the sandbox; no public write until explicit Publish.
-- Existing CAS/version conflicts, original notice IDs and timeline/date preservation.
-- Design mode remains read-only; no drag/drop/footer/layout feature is enabled.
+Keep the viewer canvas before the focused editor so changing editor height no longer moves the iframe beneath a pointer interaction. Preserve the editor DOM placement rather than reparenting it on every refresh. Add an explicit Choose field selector retaining the same private working copy. Saved Preview returns focus to the actual viewer; successful inline Publish clears the completed editor. Private preview labels remain until a successful replacement response, including during connection errors.
 
-## Final QA status
+## Scope
 
-Retained editor: 48 isolated browser checks passed. Rich-text renderer: 22 checks passed. Source/auth guards passed. A previous source version passed 58 visual checks, but the final source has an intermittent interaction failure: after selecting Edit action buttons, the intended label input can remain hidden. Do not treat the earlier pass as a final-source approval. Do not deploy until the final exact bytes repeatedly pass the complete visual suite.
+Content-mode notice/section edit controls; title, summary, report, progress, workaround, timing/priority, action labels/HTTPS URLs; safe Markdown toolbar and link dialog, Undo/Redo; actual renderer showing a labelled server-validated saved private revision; existing explicit Publish, original IDs and version conflicts. Records & drafts remains available. Design mode remains read-only: no drag/drop, footer editing, resizing or new sections in this stage.
 
-Final local app hash: 8e0ede739b7eadcd4c413ad867bc3b02132961ea1c7517f613a0f7aec5a2c16a. HTML hash: 785879f380c247afcf293b56921af7f002c9f56aa250bcd72fe381b01a09b55a.
+## Verification
 
-The complete nine-file frontend patch and accurate QA report were preserved as FastWebTools-Stage2-WIP-source.zip in the user conversation. That archive is a continuation/review backup, NOT an approved release. No Stage 2 implementation deployment was performed. This GitHub commit contains the hold/status document only; it is not the complete patch.
+Final app SHA256 a24ee355fbfee3094375d20e2266a2e25732279421f8bba7e320e57d330f2fd3; HTML SHA256 690f61147929759c4846a66e8e149b911f4598007f1a920998da10a6e502b0d4.
 
-## Confirmed production state
+Five consecutive isolated visual stress runs passed, 101 checks in each run. Includes actual viewer renderer, private-save/preview boundaries, canvas Publish confirmation, original-record update, immediate re-edit, conflict retention, incident progress/workaround, timing controls, unsafe action validation, safe action rendering, 42 field-picker switches without extra writes, responsive fields at 320/390/820/1440, forged-message rejection and logout clearing. Retained editor regression: 48 browser checks passed. Formatting renderer: 22 checks passed. These are isolated browser/backend/SQLite checks, not a real production user login or physical Safari test.
 
-Stage 1 remains 100% active on dashbord version 7e74bfde-2e17-42fa-a5fd-c8a6ba696a7c. Public Status worker remains version 3f777100-7673-43f4-b187-be92207339e8. Auth and main API worker deployments are unchanged. No real credentials/session tokens were read, no production test notices were written, and no default production build configuration or other Worker was modified for Stage 2.
+Native deployment must pass tested-source hashes, exact compiled bytes, current Stage 1 baseline, live public API and exact approved viewer hash, then unchanged public notices/settings/Last updated after upload. Target dashbord only with builder-stage2.config.json. Backend/auth/main API/public viewer are unchanged. No production test writes or real credential reads. No main merge or default production config change. Rollback is Stage 1 version 7e74bfde-2e17-42fa-a5fd-c8a6ba696a7c.
